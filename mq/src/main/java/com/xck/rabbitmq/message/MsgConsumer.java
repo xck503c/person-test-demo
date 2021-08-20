@@ -11,7 +11,7 @@ import com.rabbitmq.client.QueueingConsumer;
  * @author xuchengkun
  * @date 2021/07/12 13:26
  **/
-public class Consumer {
+public class MsgConsumer {
 
     public static void main(String[] args) throws Exception{
 

@@ -1,4 +1,4 @@
-package com.xck.thread;
+package com.xck.jdk.thread;
 
 import java.util.concurrent.CountDownLatch;
 

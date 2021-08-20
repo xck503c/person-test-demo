@@ -1,16 +1,14 @@
-package com.xck.reflect;
+package com.xck.jdk.reflect;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.impl.Log4JLogger;
 import org.apache.log4j.Category;
 import org.apache.log4j.DailyRollingFileAppender;
-import org.apache.log4j.helpers.AppenderAttachableImpl;
 
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Vector;
 
 /**
  * 创建时间: 2020-11-18

@@ -1,4 +1,4 @@
-package com.xck.ratio;
+package com.xck.other.ratio;
 
 import java.util.ArrayList;
 import java.util.HashMap;

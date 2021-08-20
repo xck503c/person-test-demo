@@ -97,6 +97,6 @@ public class Mutex implements Lock {
     }
 
     public static void main(String[] args) {
-
+        System.out.println(332 & (64|8));
     }
 }

@@ -16,16 +16,25 @@ public class StringTest {
 //        System.out.println("UNDELIV".getBytes("ISO8859_1").length);
 //        System.out.println("DELIVRD".getBytes("ISO8859_1").length);
 
-        TimeZone tz = TimeZone.getTimeZone("ETC/GMT-8");
-        TimeZone.setDefault(tz);
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");//设置日期格式
-//        ParsePosition pos = new ParsePosition(0);
-        Date now =new Date();
-        String tCurrentdate = df.format(now);
-        Date tCurrentdates = df.parse(tCurrentdate);
-        System.out.println(tCurrentdate);
-        System.out.println(tCurrentdates);
+//        TimeZone tz = TimeZone.getTimeZone("ETC/GMT-8");
+//        TimeZone.setDefault(tz);
+//        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");//设置日期格式
+////        ParsePosition pos = new ParsePosition(0);
+//        Date now =new Date();
+//        String tCurrentdate = df.format(now);
+//        Date tCurrentdates = df.parse(tCurrentdate);
+//        System.out.println(tCurrentdate);
+//        System.out.println(tCurrentdates);
 
+//        System.out.println(System.currentTimeMillis());
+//        System.out.println( new SimpleDateFormat("yyyyMMddHHmmss").parse("2021060110555").getTime());
+//        System.out.println(new SimpleDateFormat("yyyyMMddHHmmss").parse("2021060110555").getTime()
+//                - new SimpleDateFormat("yyyyMMddHHmmss").parse("20210601105559").getTime());
+
+        System.out.println("36.110.62.178".matches("36\\.110\\.62\\.178"));
+        System.out.println("36.110.62.178".matches("36\\.110\\.168\\.35"));
+    }
+    public static void a(Integer i){
 
     }
 

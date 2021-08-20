@@ -13,7 +13,7 @@ import java.util.HashMap;
  * @author xuchengkun
  * @date 2021/07/12 13:26
  **/
-public class Producer {
+public class MsgProducer {
 
     public static void main(String[] args) throws Exception{
 

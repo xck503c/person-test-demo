@@ -1,8 +1,9 @@
-package com.xck.rabbitmq.confirm;
+package com.xck.rabbitmq.consumer;
 
-import com.rabbitmq.client.*;
-
-import java.io.IOException;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.QueueingConsumer;
 
 /**
  * 消费者
@@ -10,14 +11,16 @@ import java.io.IOException;
  * @author xuchengkun
  * @date 2021/07/13 13:35
  **/
-public class Consumer {
+public class CustomConsumer {
 
     public static void main(String[] args) throws Exception{
 
         ConnectionFactory connectionFactory = new ConnectionFactory();
-        connectionFactory.setHost("127.0.0.1");
+        connectionFactory.setHost("192.168.118.117");
         connectionFactory.setPort(5672);
         connectionFactory.setVirtualHost("/");
+        connectionFactory.setUsername("xck01");
+        connectionFactory.setPassword("123456");
 
         Connection connection = connectionFactory.newConnection();
 
@@ -25,23 +28,15 @@ public class Consumer {
         //指定消息确认模式
         channel.confirmSelect(); //开启确认模式
 
-        String exchangeName = "test_confirm_exchange";
-        String routingKey = "test.confirm.#";
-        String queueName = "test_confirm_queue";
+        String exchangeName = "test_custom_exchange";
+        String routingKey = "test.custom.#";
+        String queueName = "test_custom_queue";
 
         //声明并绑定
         channel.exchangeDeclare(exchangeName, "topic", true);
         channel.queueDeclare(queueName, true, false, false, null);
         channel.queueBind(queueName, exchangeName, routingKey);
 
-        QueueingConsumer queueingConsumer = new QueueingConsumer(channel);
-        channel.basicConsume(queueName, true, queueingConsumer);
-
-        while (true){
-            QueueingConsumer.Delivery delivery = queueingConsumer.nextDelivery();
-            String msg = new String(delivery.getBody());
-
-            System.out.println(msg);
-        }
+        channel.basicConsume(queueName, true, new MyselfConsumer(channel));
     }
 }

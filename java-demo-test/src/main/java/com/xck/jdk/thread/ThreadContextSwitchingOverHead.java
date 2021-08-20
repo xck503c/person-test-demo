@@ -1,4 +1,4 @@
-package com.xck.thread;
+package com.xck.jdk.thread;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;

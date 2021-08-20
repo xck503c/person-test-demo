@@ -301,6 +301,22 @@ public class RedisPool {
         }
     }
 
+    public void lpushMulitInBytes(String listKey, List<byte[]> list){
+        Jedis jedis = null;
+        try {
+            jedis = getJedis();
+            Pipeline pipeline = jedis.pipelined();
+            for(int i=0; i<list.size(); i++){
+                pipeline.lpush(listKey.getBytes("UTF-8"), list.get(i));
+            }
+            pipeline.sync();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            returnJedis(jedis);
+        }
+    }
+
     //取出来会有null的情况，即便用了llen判断也是一样
     public List<Object> rpopMulit(String listKey, long count){
         Jedis jedis = null;

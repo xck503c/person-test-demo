@@ -1,12 +1,9 @@
-package com.xck.zip;
+package com.xck.other.zip;
 
 import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class DecryptionZip {
 

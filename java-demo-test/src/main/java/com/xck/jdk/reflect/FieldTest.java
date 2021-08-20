@@ -1,4 +1,4 @@
-package com.xck.reflect;
+package com.xck.jdk.reflect;
 
 import java.lang.reflect.Field;
 

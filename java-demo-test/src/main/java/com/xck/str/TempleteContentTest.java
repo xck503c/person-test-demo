@@ -3,6 +3,8 @@ package com.xck.str;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,8 +28,9 @@ public class TempleteContentTest {
 
     public static void main(String[] args) {
 //        testFourTempleteAndRnandom();
-//        testMultiTemplete();
-        testMultiTemplete1();
+        testMultiTemplete();
+//        testMultiTemplete1();
+//        matchTempleteInIndexOf();
     }
 
     //匹配的字符串长度: 343
@@ -35,7 +38,7 @@ public class TempleteContentTest {
     //最大耗时1558ms
     //调用20次，匹配模板平均耗时951.550000ms
     public static void testMultiTemplete(){
-        String content = "【建屋物业明日星城管理处】尊敬的明日星城业主您好：近日受强冷空气影响，我市将有中到大雪，气温下降8-12度，建屋物业在此温馨提醒您：1、雨雪天气地面湿滑，请您外出时注意防滑，小心慢行；驾驶车辆外出时请谨慎慢行；3、在此期间，可能会出现大风现象，请您收回自家阳台和户外的花盆、衣物等易被风吹落的物品，以免高空坠物伤人；请不要在玻璃门窗、广告牌、大树附近行走或停留，以免发生意外；4、使用取暖器、电热毯等电器设备时请注意安全，离开房间要及时关闭电源，以免发生火灾；5、请您及时关好门窗，做好室内各种水阀的保温防冻措施，如外出长期不住时，请提前关好室外水阀，排空管内积水，避免造成管道冻裂；祝您阖家安康！物业服务热线：0527-82868166。24小时服务热线：0527-82868611。";
+        String content = "阿yt什mfaqkthl发ygX都X什gXf门刻g发儿kthlm开f发h都时u发ad此开w此xXh儿刻umdX开mxgx刻s此s时f儿s儿XXX后门t花X顿gkrfpb发X时sli阿了y此zwX后m儿开ig最此aXXoisql开X最oa儿后顿z发nm此X花发s最开开l了x花时Xug最k顿t时h阿r花X此lqXl儿Xq发了gdvdu最X了hiXX刻gc门刻oa此g儿花go都w后tour时最Xo刻nk门门后门alaXtr后gXbtu儿开后fr开X时X花ryf时vqi此h了p阿r开lq阿时顿kXcuh发XXuXXmp此XdmXX花kX此Xuy花m门儿p都tXaq刻z刻i发iwz最uh最刻uX时了fvg花p发socX花gXzrli花开riv最儿了XozwfXx阿f顿dp刻了XX发花X时【张X】";
         int length = content.length();
 
         System.out.println("匹配的字符串长度: " + length);
@@ -43,14 +46,18 @@ public class TempleteContentTest {
         String[] templeteArr = templeteStr.split("\n");
         System.out.println("模板数量: " + templeteArr.length);
 
+        List<Pattern> list = new ArrayList<>();
+
+        for (int i = 0; i < templeteArr.length; i++) {
+            templeteArr[i] = templeteArr[i].replaceFirst("... ...", "");
+            list.add(Pattern.compile(templeteArr[i]));
+        }
+
         long useTime = 0;
         long useMaxTime = 0;
         for (int i=0; i<20; i++) {
             long start = System.currentTimeMillis();
-            for(String templete : templeteArr){
-                templete = templete.replaceFirst("... ...", ".?")
-                        .replaceFirst("... ...", ".*近日.?");
-                Pattern pattern = Pattern.compile(templete);
+            for(Pattern pattern : list){
                 System.out.println(match(content, pattern));;
             }
             long diff = System.currentTimeMillis() - start;
@@ -62,6 +69,9 @@ public class TempleteContentTest {
         System.out.println(String.format("调用20次，匹配模板平均耗时%fms", ((double)useTime/20)));
     }
 
+    /**
+     * 问题数据的indexof匹配测试
+     */
     public static void testMultiTemplete1(){
         String content = "【建屋物业明日星城管理处】尊敬的明日星城业主您好：近日受强冷空气影响，我市将有中到大雪，气温下降8-12度，建屋物业在此温馨提醒您：1、雨雪天气地面湿滑，请您外出时注意防滑，小心慢行；驾驶车辆外出时请谨慎慢行；3、在此期间，可能会出现大风现象，请您收回自家阳台和户外的花盆、衣物等易被风吹落的物品，以免高空坠物伤人；请不要在玻璃门窗、广告牌、大树附近行走或停留，以免发生意外；4、使用取暖器、电热毯等电器设备时请注意安全，离开房间要及时关闭电源，以免发生火灾；5、请您及时关好门窗，做好室内各种水阀的保温防冻措施，如外出长期不住时，请提前关好室外水阀，排空管内积水，避免造成管道冻裂；祝您阖家安康！物业服务热线：0527-82868166。24小时服务热线：0527-82868611。";
         int length = content.length();
@@ -160,6 +170,79 @@ public class TempleteContentTest {
         return matcher.find();
     }
 
+    /**
+     * 模板内容事先随机生成好，每次匹配的内容都是会随机一次：
+     * 2000个模板，每个模板3个关键词，每个关键词长度30，匹配的内容长度250，调用100次，匹配模板平均耗时1ms左右
+     *
+     * 5000个模板，每个模板3个关键词，每个关键词长度15，匹配的内容长度250，调用2000次，匹配模板平均耗时1.927500ms
+     * 5000个模板，每个模板3个关键词，每个关键词长度20，匹配的内容长度250，调用2000次，匹配模板平均耗时2.327500ms
+     * 5000个模板，每个模板3个关键词，每个关键词长度30，匹配的内容长度250，调用2000次，匹配模板平均耗时1.634000ms
+     *
+     * 1w个模板，每个模板3个关键词，每个关键词长度30，匹配的内容长度250，调用2000次，匹配模板平均耗时3.651000ms
+     * 1w个模板，每个模板3个关键词，每个关键词长度30，匹配的内容长度250，调用100次，匹配模板平均耗时3~4ms
+     */
+    public static void matchTempleteInIndexOf(){
+        int templeteSize = 2000;
+        int testTimes = 100;
+
+        //构建数据
+        List<String[]> list = new ArrayList<>(templeteSize);
+        for(int i=0; i<templeteSize; i++){
+            String[] keywords = new String[3];
+            for(int j=0; j<keywords.length; j++){
+                keywords[j] = randomString(30, 1);
+            }
+            list.add(keywords);
+        }
+
+        long time = 0;
+        for(int i=0; i<testTimes; i++){
+            String content = randomString(250, 1);
+            long start = System.currentTimeMillis();
+            for(String[] templete : list){
+                int index = -1;
+                for(String tmp : templete){
+                    if(StringUtils.isBlank(tmp)) continue;
+                    if((index = content.indexOf(tmp, index)) == -1){
+
+                    }
+                }
+            }
+            time += (System.currentTimeMillis() - start);
+        }
+        System.out.println(String.format("调用%d次，匹配模板平均耗时%fms", testTimes, ((double)time/testTimes)));
+    }
+
+    public static void matchTempleteInSunday(){
+        int templeteSize = 2000;
+        int testTimes = 100;
+
+        //构建数据
+        List<String[]> list = new ArrayList<>(templeteSize);
+        for(int i=0; i<templeteSize; i++){
+            String[] keywords = new String[3];
+            for(int j=0; j<keywords.length; j++){
+                keywords[j] = randomString(30, 1);
+            }
+            list.add(keywords);
+        }
+
+        long time = 0;
+        for(int i=0; i<testTimes; i++){
+            String content = randomString(250, 1);
+            long start = System.currentTimeMillis();
+            for(String[] keywords : list){
+                
+            }
+            time += (System.currentTimeMillis() - start);
+        }
+        System.out.println(String.format("调用%d次，匹配模板平均耗时%fms", testTimes, ((double)time/testTimes)));
+    }
+
+    public static void sundayMatch(int i, char[] templet, char[] array){
+
+    }
+
 
     /**
      * 随机生成字符串
@@ -175,6 +258,9 @@ public class TempleteContentTest {
         }
     }
 
+    /**
+     * 线上的问题数据
+     */
     private static String templeteStr =
             "... ...【U号租】... ...\n" +
             "... ...【爱心公益】... ...\n" +
@@ -1344,8 +1430,7 @@ public class TempleteContentTest {
             "... ...【巨人网络】... ...\n" +
             "... ...【多多数字】... ...\n" +
             "... ...【ZARA】... ...\n" +
-            "... ...【展商秀】... ...\n" +
-            "... ...【建屋物业明日星城管理处】... ...\n";
+            "... ...【展商秀】... ...\n";
 }
 
 
