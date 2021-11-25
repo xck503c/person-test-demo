@@ -13,7 +13,6 @@
         <module>springboot-redis</module>
         <module>data-transfer-service</module>
         <module>mq</module>
-        <module>back-service</module>
         <module>java-demo-test</module>
     </modules>
 
