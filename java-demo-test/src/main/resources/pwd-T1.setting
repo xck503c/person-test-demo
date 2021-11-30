@@ -1,0 +1,8 @@
+[CA]
+config.appender.file.pwd =
+config.appender.zip.pwd = 123
+config.appender.pwd.isEncode = 0
+[CB]
+config.appender.file.pwd =
+config.appender.zip.pwd =
+config.appender.pwd.isEncode = 0

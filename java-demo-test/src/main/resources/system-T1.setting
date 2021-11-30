@@ -1,0 +1,28 @@
+[submit]
+#基础文件路径变量
+config.file.home=D:/file/submit
+
+#密码配置文件路径
+config.pwd.file=./pwd-T1.setting
+
+#客户名，多个客户用逗号隔开
+config.submit.name=CA,CB
+
+#客户配置说明：
+#1. config.appender.file.format：必填，是文件格式，支持txt，csv，excel
+#2. config.appender.userIds：必填，客户对应的账户id，多个用逗号隔开
+#3. config.appender.file：必填，输出路径
+#4. config.appender.obj.convert：可选，转换器，如果是txt只需指定json，如果是csv或excel则不配置
+
+#CA客户配置
+[CA]
+config.appender.file=${submit.config.file.home}/CA
+config.appender.userIds=tom,jim
+config.appender.file.format=txt
+config.appender.obj.convert=json
+
+[CB]
+#CB客户配置
+config.appender.file=${submit.config.file.home}/CB
+config.appender.userIds=lisa,jim
+config.appender.file.format=csv
