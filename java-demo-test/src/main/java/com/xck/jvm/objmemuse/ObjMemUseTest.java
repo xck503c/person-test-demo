@@ -2,6 +2,10 @@ package com.xck.jvm.objmemuse;
 
 import org.openjdk.jol.info.ClassLayout;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+
 /**
  * 对象内存占用测试
  *
@@ -11,8 +15,11 @@ import org.openjdk.jol.info.ClassLayout;
 public class ObjMemUseTest {
 
     public static void main(String[] args) {
-        System.out.println((true&&true||false)&&false );
-        System.out.println(((true) && (true)) || ((false) && (false)));
+        System.out.println(ClassLayout.parseInstance(new Long(10L)).toPrintable());
+        System.out.println(ClassLayout.parseInstance(new Integer(10)).toPrintable());
+        System.out.println(ClassLayout.parseInstance(new HashMap<>()).toPrintable());
+        System.out.println(ClassLayout.parseInstance(new HashSet<>()).toPrintable());
+        System.out.println(ClassLayout.parseInstance(new ArrayList<>()).toPrintable());
     }
 
     public static void impleClass() {
@@ -26,7 +33,7 @@ public class ObjMemUseTest {
     }
 
     public static void charArrClass() {
-        char[] c = new char[]{'1', '1', '1'};
+        char[] c = new char[]{'1', '1', '1', '1', '1', '1', '1', '1', '1', '1', '1'};
         System.out.println(ClassLayout.parseInstance(c).toPrintable());
     }
 
