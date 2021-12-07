@@ -1,6 +1,5 @@
 package com.xck.persistentQueue.normal;
 
-import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -14,8 +13,8 @@ public class NormalBlockingQueuePerformanceTest {
 
     public static void MultiVABMessagePCNoEQQueueTest() throws InterruptedException{
         //每个线程put 50w int类型的数据，每次放入队列都是500大小的List，每个测试200次，取平均值
-        testBase(8000, 2, 1); //avg 260ms
-//        testBase(8000, 4, 1); //avg 528ms
+//        testBase(8000, 2, 1); //avg 260ms
+        testBase(8000, 4, 1); //avg 528ms
 //        testBase(8000, 4, 2); //avg 545ms
 //        testBase(8000, 8, 4); //avg 1166ms
 //
@@ -30,7 +29,7 @@ public class NormalBlockingQueuePerformanceTest {
     public static CountDownLatch isFinish = null;
     public static CountDownLatch isTakeFinish =null;
     public static volatile boolean isStop = false;
-    public static NormalPersistentQueue<ArrayList> queue1 = null;
+    public static NormalPersistentQueue<String> queue1 = null;
 
     public static void testBase(int capacity, int producerSize, int consumerSize) throws InterruptedException{
         String path = System.getProperty("user.dir");
@@ -70,6 +69,9 @@ public class NormalBlockingQueuePerformanceTest {
         long time = System.currentTimeMillis()-start;
         System.out.println(time);
         isStop = true;
+        for(int i=0; i<consumerSize; i++){
+            takTArr[i].interrupt();
+        }
         isTakeFinish.await();
 
         return time;
@@ -84,7 +86,6 @@ public class NormalBlockingQueuePerformanceTest {
                 countDownLatch.await();
                 while (!isStop){
                     Object o = queue1.poll();
-                    System.out.println(isStop);
                 }
             } catch (InterruptedException e) {
             }
@@ -101,14 +102,9 @@ public class NormalBlockingQueuePerformanceTest {
             countDownLatch.countDown();
             try {
                 countDownLatch.await();
-                ArrayList<String> list = new ArrayList<>(500);
-                while (count < 500000){
-                    list.add(count+"");
+                while (count < 5000000){
                     ++count;
-                    if(list.size() >= 50){
-                        queue1.offer(list);
-                        list = new ArrayList<>(500);
-                    }
+                    queue1.offer(count+"");
                 }
             } catch (InterruptedException e) {
             }

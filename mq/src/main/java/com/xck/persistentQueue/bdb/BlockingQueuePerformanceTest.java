@@ -14,8 +14,8 @@ public class BlockingQueuePerformanceTest {
 
     public static void MultiVABMessagePCNoEQQueueTest() throws InterruptedException{
         //每个线程put 50w int类型的数据，每次放入队列都是500大小的List，每个测试200次，取平均值
-        testBase(8000, 2, 1); //avg 260ms
-//        testBase(8000, 4, 1); //avg 528ms
+//        testBase(8000, 2, 2); //avg 260ms
+        testBase(8000, 4, 1); //avg 528ms
 //        testBase(8000, 4, 2); //avg 545ms
 //        testBase(8000, 8, 4); //avg 1166ms
 //
@@ -30,11 +30,11 @@ public class BlockingQueuePerformanceTest {
     public static CountDownLatch isFinish = null;
     public static CountDownLatch isTakeFinish =null;
     public static volatile boolean isStop = false;
-    public static BDBPersistentQueue<ArrayList> queue1 = null;
+    public static BDBPersistentQueue<String> queue1 = null;
 
     public static void testBase(int capacity, int producerSize, int consumerSize) throws InterruptedException{
         String path = System.getProperty("user.dir");
-        queue1 = new BDBPersistentQueue<>(path + "/mq/bdb", "test", ArrayList.class);
+        queue1 = new BDBPersistentQueue<>(path + "/mq/bdb", "test", String.class);
         long t = 0L;
         for(int i=0; i<200; i++){
             t+=test(producerSize, consumerSize);
@@ -66,7 +66,6 @@ public class BlockingQueuePerformanceTest {
 
         while (queue1.size() > 0) {
             Thread.sleep(1);
-            System.out.println(queue1.size());
         }
         long time = System.currentTimeMillis()-start;
         System.out.println(time);
@@ -101,14 +100,9 @@ public class BlockingQueuePerformanceTest {
             countDownLatch.countDown();
             try {
                 countDownLatch.await();
-                ArrayList<String> list = new ArrayList<>(500);
                 while (count < 500000){
-                    list.add(count+"");
+                    queue1.offer(count+"");
                     ++count;
-                    if(list.size() >= 50){
-                        queue1.offer(list);
-                        list = new ArrayList<>(500);
-                    }
                 }
             } catch (InterruptedException e) {
             }
