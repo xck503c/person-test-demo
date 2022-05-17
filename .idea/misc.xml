@@ -13,12 +13,13 @@
         <option value="$PROJECT_DIR$/Sharding-DB/pom.xml" />
         <option value="$PROJECT_DIR$/back-service/pom.xml" />
         <option value="$PROJECT_DIR$/controller/pom.xml" />
+        <option value="$PROJECT_DIR$/data-transfer-service/pom.xml" />
         <option value="$PROJECT_DIR$/rabbitmq-cli/pom.xml" />
         <option value="$PROJECT_DIR$/xxl-job-test/pom.xml" />
       </set>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="false" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_7" default="false" project-jdk-name="1.7" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>

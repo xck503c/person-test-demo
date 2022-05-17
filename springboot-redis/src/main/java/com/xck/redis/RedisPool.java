@@ -277,9 +277,11 @@ public class RedisPool {
         try{
             jedis = getJedis();
             List<Object> tmp = (List<Object>)jedis.eval(script, keys, args);
-            System.out.println(tmp);
+            return tmp;
         }catch (Exception e){
             e.printStackTrace();
+        } finally {
+            returnJedis(jedis);
         }
 
         return list;
@@ -318,6 +320,66 @@ public class RedisPool {
     }
 
     //取出来会有null的情况，即便用了llen判断也是一样
+    public List<Object> rpopMulitSet(Map<String, Integer> scanMap){
+        Jedis jedis = null;
+        try {
+            jedis = getJedis();
+            Pipeline pipeline = jedis.pipelined();
+            for (String key : scanMap.keySet()) {
+                Integer count = scanMap.get(key);
+                for(int i=0; i<count; i++){
+                    pipeline.rpop(key);
+                }
+            }
+            List<Object> list = pipeline.syncAndReturnAll();
+            if (list != null) {
+                List<Object> tmp = new ArrayList<>();
+                for (Object o : list) {
+                    if (o == null) continue;
+                    tmp.add(o);
+                }
+                return tmp;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            returnJedis(jedis);
+        }
+        return null;
+    }
+
+    public Map<String, List<Response<String>>> getMessageFromDataCenterAsync(Map<String, Integer> queue2CountMap) {
+        Map<String, List<Response<String>>> resultMap = new HashMap<>();
+
+        Jedis jedis = null;
+        try {
+            jedis = getJedis();
+            if (jedis != null) {
+                Pipeline pipeline = jedis.pipelined();
+
+                for (String key : queue2CountMap.keySet()) {
+                    List<Response<String>> list = resultMap.get(key);
+                    if (list == null) {
+                        list = new ArrayList<>();
+                        resultMap.put(key, list);
+                    }
+
+                    int count = queue2CountMap.get(key);
+                    for (int i = 0; i < count; i++) {
+                        list.add(pipeline.rpop(key));
+                    }
+                }
+                pipeline.sync();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            returnJedis(jedis);
+        }
+        return resultMap;
+    }
+
+    //取出来会有null的情况，即便用了llen判断也是一样
     public List<Object> rpopMulit(String listKey, long count){
         Jedis jedis = null;
         try {
@@ -333,7 +395,15 @@ public class RedisPool {
             for(int i=0; i<count; i++){
                 pipeline.rpop(listKey);
             }
-            return pipeline.syncAndReturnAll();
+            List<Object> list = pipeline.syncAndReturnAll();
+            if (list != null) {
+                List<Object> tmp = new ArrayList<>();
+                for (Object o : list) {
+                    if (o == null) continue;
+                    tmp.add(o);
+                }
+                return tmp;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -466,8 +536,41 @@ public class RedisPool {
         }
     }
 
-    //
-//    public byte[]
+    /**
+     * 模糊匹配
+     *
+     * @param pattern
+     *            key的正则表达式
+     * @param count
+     *            每次扫描多少条记录，值越大消耗的时间越短，但会影响redis性能。建议设为一千到一万
+     * @return 匹配的key集合
+     */
+    public Set<String> scan(String pattern, int count) {
+        Set<String> set = new HashSet<String>();
+        Jedis jedis = getJedis();
+        try {
+            String cursor = ScanParams.SCAN_POINTER_START;
+            ScanParams scanParams = new ScanParams();
+            scanParams.count(count);
+            scanParams.match(pattern);
+            do {
+                ScanResult<String> scanResult = jedis.scan(cursor, scanParams);
+                List<String> result = scanResult.getResult();
+                if (result != null && result.size() > 0) {
+                    set.addAll(result);
+                }
+                cursor = scanResult.getCursor();
+
+            } while (!"0".equals(cursor));
+
+            return set;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return set;
+        } finally {
+            returnJedis(jedis);
+        }
+    }
 
     public static void main(String[] args) {
 

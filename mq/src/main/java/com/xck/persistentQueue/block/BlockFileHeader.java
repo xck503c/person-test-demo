@@ -1,7 +1,6 @@
 package com.xck.persistentQueue.block;
 
 import java.io.*;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -12,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
  **/
 public class BlockFileHeader implements AutoCloseable {
 
-    public final static long MAX_BLOCK_SIZE = 32 * 1024 * 1024;
+    public final static long MAX_BLOCK_SIZE = 16 * 1024 * 1024;
     public String home;
     public String headerFileName;
     public String blockFileName;
@@ -28,9 +27,7 @@ public class BlockFileHeader implements AutoCloseable {
 
     private ByteArrayInputStream readBaos;
     private ByteArrayOutputStream writeBaos;
-    private int bufferSize = 8192;
-
-    private DelBlockFileTask delBlockFileTask;
+    private int bufferSize;
 
     private RandomAccessFile headerFile;
 
@@ -38,8 +35,7 @@ public class BlockFileHeader implements AutoCloseable {
     private volatile long writePos;
     private volatile long lastWriteTime;
 
-    private BlockingQueue<byte[]> writeQueue;
-    private BlockingQueue<byte[]> readQueue;
+    private volatile boolean isStop;
 
     private Lock lock = new ReentrantLock();
 
@@ -50,12 +46,10 @@ public class BlockFileHeader implements AutoCloseable {
         this.headerFileName = home + "headerFile-" + queueName;
         this.blockFileName = home + "blockFile-" + queueName;
 
-        this.delBlockFileTask = new DelBlockFileTask(home);
-        this.delBlockFileTask.setDaemon(true);
         this.lastWriteTime = System.currentTimeMillis();
-        this.writeBaos = new ByteArrayOutputStream(8192);
-        this.bufferSize = bufferSize;
+        this.bufferSize = 8192;
         this.writeBaos = new ByteArrayOutputStream(bufferSize);
+        this.isStop = false;
     }
 
     public BlockFileHeader(String home, String queueName, int bufferSize) {
@@ -64,8 +58,6 @@ public class BlockFileHeader implements AutoCloseable {
         this.headerFileName = home + "headerFile-" + queueName;
         this.blockFileName = home + "blockFile-" + queueName;
 
-        this.delBlockFileTask = new DelBlockFileTask(home);
-        this.delBlockFileTask.setDaemon(true);
         this.lastWriteTime = System.currentTimeMillis();
         this.bufferSize = bufferSize;
         this.writeBaos = new ByteArrayOutputStream(bufferSize);
@@ -74,8 +66,6 @@ public class BlockFileHeader implements AutoCloseable {
     public void load() throws IOException {
         try {
             lock.lock();
-
-//            syncTask.start();
 
             File file = new File(headerFileName);
             if (!file.getParentFile().exists()) {
@@ -107,16 +97,21 @@ public class BlockFileHeader implements AutoCloseable {
             this.writeBlockFile = new BlockFile(this, writeBlockFileIndex, writePos, false);
             this.writeBlockFile.load();
 
-            this.delBlockFileTask.start();
+            selfCheck();
+
         } finally {
             lock.unlock();
         }
     }
 
+    public void selfCheck() {
+
+    }
+
     @Override
     public void close() throws IOException {
         try {
-            delBlockFileTask.close();
+            this.isStop = true;
 
             lock.lock();
 
@@ -131,7 +126,11 @@ public class BlockFileHeader implements AutoCloseable {
         }
     }
 
-    public void putData(byte[] data) throws IOException {
+    public boolean putData(byte[] data) throws IOException {
+        if (isStop) {
+            return false;
+        }
+
         byte[] b = new byte[2 + data.length];
         System.arraycopy(NumberUtil.short2Bytes((short) data.length), 0, b, 0, 2);
         System.arraycopy(data, 0, b, 2, data.length);
@@ -142,16 +141,17 @@ public class BlockFileHeader implements AutoCloseable {
         writeBaos.write(b);
 
         lastWriteTime = System.currentTimeMillis();
+        return true;
     }
 
     private void write(byte[] data) throws IOException {
 
         if (writePos + data.length > MAX_BLOCK_SIZE) {
-                ++writeBlockFileIndex;
-                if (writeBlockFileIndex > 100000) {
-                    writeBlockFileIndex = 1;
-                }
-                writeBlockFile.setNextIndex(writeBlockFileIndex); //设置下个节点文件
+            ++writeBlockFileIndex;
+            if (writeBlockFileIndex > 100000) {
+                writeBlockFileIndex = 1;
+            }
+            writeBlockFile.setNextIndex(writeBlockFileIndex); //设置下个节点文件
 
             try {
                 lock.lock();
@@ -180,6 +180,10 @@ public class BlockFileHeader implements AutoCloseable {
     }
 
     public byte[] readData(boolean isCommit) throws IOException {
+        if (isStop) {
+            return null;
+        }
+
         if (writeBlockFile.getIndex() == readBlockFile.getIndex() &&
                 readPos >= writePos) {
             return null;
@@ -218,10 +222,12 @@ public class BlockFileHeader implements AutoCloseable {
                 readPos = 5;
                 readBlockFile.setDel(true);
                 readBlockFile.close();
+                BlockFile oldReadFile = readBlockFile;
                 System.out.println(Thread.currentThread().getName() + "关闭读文件: " + readBlockFile.getIndex());
                 this.readBlockFile = new BlockFile(this, nextReadIndex, readPos, true);
                 this.readBlockFile.load();
                 flushPos();
+                oldReadFile.del();
                 System.out.println(Thread.currentThread().getName() + "打开读文件: " + readBlockFile.getIndex());
             } finally {
                 lock.unlock();

@@ -17,19 +17,32 @@ public class TestJavaRedis {
 
         Jedis jedis = redisPool.getJedis();
 
-        Map<String, NetSwitchedMobileInfo> map = new HashMap<String, NetSwitchedMobileInfo>();
-        for(long i=15720604553L; i<15720604553L+5000000; i++){
-            NetSwitchedMobileInfo info = new NetSwitchedMobileInfo();
-            info.setMobile(i+"");
-            info.setDest_td_type(2);
-            map.put(info.getMobile(), info);
-        }
-
-        System.out.println("写入");
+//        Map<String, NetSwitchedMobileInfo> map = new HashMap<String, NetSwitchedMobileInfo>();
+//        for(long i=15720604553L; i<15720604553L+5000000; i++){
+//            NetSwitchedMobileInfo info = new NetSwitchedMobileInfo();
+//            info.setMobile(i+"");
+//            info.setDest_td_type(2);
+//            map.put(info.getMobile(), info);
+//        }
+//
+//        System.out.println("写入");
+//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//        ObjectOutputStream oos=new ObjectOutputStream(baos);
+////        ObjectOutputStream oos=new ObjectOutputStream(new FileOutputStream(
+////                new File("/Users/xck/workDir/project/redis/xxx")));
+//
+//        oos.writeObject(map);
+//
+//        jedis.set("a".getBytes(), baos.toByteArray());
+//
+//        oos.close();
+//
+//        redisPool.returnJedis(jedis);
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("ffff", "1");
+        map.put("fffffdsfdsf", "2");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos=new ObjectOutputStream(baos);
-//        ObjectOutputStream oos=new ObjectOutputStream(new FileOutputStream(
-//                new File("/Users/xck/workDir/project/redis/xxx")));
 
         oos.writeObject(map);
 

@@ -14,7 +14,7 @@ public class NormalBlockingQueuePerformanceTest {
     public static void MultiVABMessagePCNoEQQueueTest() throws InterruptedException{
         //每个线程put 50w int类型的数据，每次放入队列都是500大小的List，每个测试200次，取平均值
 //        testBase(8000, 2, 1); //avg 260ms
-        testBase(8000, 4, 1); //avg 528ms
+        testBase(8000, 1, 1); //avg 528ms
 //        testBase(8000, 4, 2); //avg 545ms
 //        testBase(8000, 8, 4); //avg 1166ms
 //
@@ -35,7 +35,7 @@ public class NormalBlockingQueuePerformanceTest {
         String path = System.getProperty("user.dir");
         queue1 = new NormalPersistentQueue<>(path + "/mq/normal");
         long t = 0L;
-        for(int i=0; i<200; i++){
+        for(int i=0; i<1; i++){
             t+=test(producerSize, consumerSize);
         }
         System.out.println("end: " + t/200);
@@ -62,17 +62,18 @@ public class NormalBlockingQueuePerformanceTest {
 
         long start = System.currentTimeMillis();
         isFinish.await();
+        isTakeFinish.await();
 
-        while (queue1.size() > 0) {
-            Thread.sleep(1);
-        }
+//        while (queue1.size() > 0) {
+//            Thread.sleep(1);
+//        }
         long time = System.currentTimeMillis()-start;
         System.out.println(time);
-        isStop = true;
-        for(int i=0; i<consumerSize; i++){
-            takTArr[i].interrupt();
-        }
-        isTakeFinish.await();
+//        isStop = true;
+//        for(int i=0; i<consumerSize; i++){
+//            takTArr[i].interrupt();
+//        }
+//        isTakeFinish.await();
 
         return time;
     }
@@ -84,8 +85,13 @@ public class NormalBlockingQueuePerformanceTest {
             countDownLatch.countDown();
             try {
                 countDownLatch.await();
-                while (!isStop){
+                int count = 0;
+                while (count < 5000000){
                     Object o = queue1.poll();
+                    if (o != null) {
+                        System.out.println(count);
+                        ++count;
+                    }
                 }
             } catch (InterruptedException e) {
             }
@@ -103,8 +109,8 @@ public class NormalBlockingQueuePerformanceTest {
             try {
                 countDownLatch.await();
                 while (count < 5000000){
-                    ++count;
                     queue1.offer(count+"");
+                    ++count;
                 }
             } catch (InterruptedException e) {
             }

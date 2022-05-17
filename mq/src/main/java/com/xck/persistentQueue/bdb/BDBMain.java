@@ -9,13 +9,14 @@ public class BDBMain {
         queue.offer("first");
         queue.offer("double");
         queue.offer("String");
-        //获取移除队列
+        queue.sync();
+
         String p1 = queue.poll();
         String p2 = queue.poll();
+        String p3 = queue.poll();
         System.out.println(p1);
         System.out.println(p2);
-        //获取不移除队列--每次取出的都是第一个元素
-        //String p1 = queue.peek();
-        //String p2 = queue.peek();
+        System.out.println(p3);
+        queue.close();
     }
 }

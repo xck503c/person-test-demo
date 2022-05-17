@@ -24,7 +24,6 @@ public class BlockFile implements AutoCloseable {
     private int nextIndex;
 
     private RandomAccessFile blockFileAccess;
-    private FileChannel fileChannel;
 
     public BlockFile(BlockFileHeader header, int index, long pos, boolean isRead) {
         this.blockFileHeader = header;
@@ -39,7 +38,6 @@ public class BlockFile implements AutoCloseable {
         if (!file.exists()) { //初始化块文件
             file.createNewFile();
             blockFileAccess = new RandomAccessFile(blockFileName, "rw");
-            fileChannel = blockFileAccess.getChannel();
             blockFileAccess.writeBoolean(false);
             blockFileAccess.writeInt(0);
             setDel(false);
@@ -47,7 +45,6 @@ public class BlockFile implements AutoCloseable {
         } else {
             blockFileAccess = new RandomAccessFile(
                     blockFileHeader.getBlockFileName() + "-" + index, "rw");
-            fileChannel = blockFileAccess.getChannel();
             setDel(blockFileAccess.readBoolean());
             setNextIndex(blockFileAccess.readInt());
         }
@@ -67,6 +64,13 @@ public class BlockFile implements AutoCloseable {
                 blockFileAccess.writeInt(getNextIndex());
             }
             blockFileAccess.close();
+        }
+    }
+
+    public void del() throws IOException {
+        File file = new File(blockFileHeader.getBlockFileName() + "-" + index);
+        if (file.exists()) {
+            file.delete();
         }
     }
 

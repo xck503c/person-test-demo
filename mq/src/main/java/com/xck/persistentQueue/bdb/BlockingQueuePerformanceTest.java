@@ -1,5 +1,8 @@
 package com.xck.persistentQueue.bdb;
 
+import com.alibaba.fastjson.JSONObject;
+import com.xck.persistentQueue.block.BlockBlockingQueuePerformanceTest;
+
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
@@ -15,7 +18,7 @@ public class BlockingQueuePerformanceTest {
     public static void MultiVABMessagePCNoEQQueueTest() throws InterruptedException{
         //每个线程put 50w int类型的数据，每次放入队列都是500大小的List，每个测试200次，取平均值
 //        testBase(8000, 2, 2); //avg 260ms
-        testBase(8000, 4, 1); //avg 528ms
+        testBase(8000, 3, 3); //avg 528ms
 //        testBase(8000, 4, 2); //avg 545ms
 //        testBase(8000, 8, 4); //avg 1166ms
 //
@@ -36,10 +39,10 @@ public class BlockingQueuePerformanceTest {
         String path = System.getProperty("user.dir");
         queue1 = new BDBPersistentQueue<>(path + "/mq/bdb", "test", String.class);
         long t = 0L;
-        for(int i=0; i<200; i++){
+        for(int i=0; i<1; i++){
             t+=test(producerSize, consumerSize);
         }
-        System.out.println("end: " + t/200);
+//        System.out.println("end: " + t/200);
         queue1.close();
     }
 
@@ -82,8 +85,12 @@ public class BlockingQueuePerformanceTest {
             countDownLatch.countDown();
             try {
                 countDownLatch.await();
+                int count = 0;
                 while (!isStop){
                     Object o = queue1.poll();
+                    if (o != null) {
+                        System.out.println(++count);
+                    }
                 }
             } catch (InterruptedException e) {
             }
@@ -101,7 +108,7 @@ public class BlockingQueuePerformanceTest {
             try {
                 countDownLatch.await();
                 while (count < 500000){
-                    queue1.offer(count+"");
+                    queue1.offer(JSONObject.toJSONString(new BlockBlockingQueuePerformanceTest.TestObj(count)));
                     ++count;
                 }
             } catch (InterruptedException e) {

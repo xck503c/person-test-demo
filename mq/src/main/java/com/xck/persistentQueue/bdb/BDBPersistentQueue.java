@@ -12,12 +12,8 @@ import com.sleepycat.bind.serial.StoredClassCatalog;
 import com.sleepycat.bind.tuple.TupleBinding;
 import com.sleepycat.collections.StoredMap;
 import com.sleepycat.collections.StoredSortedMap;
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseConfig;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.DatabaseExistsException;
-import com.sleepycat.je.DatabaseNotFoundException;
-import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.*;
+
 /**
  * @contributor
  * @param <E>
@@ -30,11 +26,10 @@ public class BDBPersistentQueue<E extends Serializable> extends AbstractQueue<E>
     private transient StoredMap<Long,E> queueMap;   // 持久化Map,Key为指针位置,Value为值,无需序列化
     private transient String dbDir;                 // 数据库所在目录
     private transient String dbName;                // 数据库名字
-    //AtomicLong:元子类型，线程安全
-    //i++线程不安全
     private AtomicLong headIndex;                   // 头部指针
     private AtomicLong tailIndex;                   // 尾部指针
     private transient E peekItem=null;              // 当前获取的值
+    private volatile boolean isStop = false;
 
     /**
      * 构造函数,传入BDB数据库
@@ -49,6 +44,9 @@ public class BDBPersistentQueue<E extends Serializable> extends AbstractQueue<E>
         headIndex=new AtomicLong(0);
         tailIndex=new AtomicLong(0);
         bindDatabase(queueDb,valueClass,classCatalog);
+        SyncTask syncTask = new SyncTask();
+        syncTask.setDaemon(true);
+        syncTask.start();
     }
     /**
      * 构造函数,传入BDB数据库位置和名字,自己创建数据库
@@ -61,6 +59,9 @@ public class BDBPersistentQueue<E extends Serializable> extends AbstractQueue<E>
         this.dbDir=dbDir;
         this.dbName=dbName;
         createAndBindDatabase(dbDir,dbName,valueClass);
+        SyncTask syncTask = new SyncTask();
+        syncTask.setDaemon(true);
+        syncTask.start();
     }
     /**
      * 绑定数据库
@@ -121,6 +122,7 @@ public class BDBPersistentQueue<E extends Serializable> extends AbstractQueue<E>
             dbConfig.setTransactional(false);
             //是否要延迟写
             dbConfig.setDeferredWrite(true);
+//            dbConfig.setCacheMode(CacheMode.EVICT_LN);
 //            envConfig.setConfigParam(EnvironmentConfig.CLEANER_MIN_UTILIZATION, "90");
 //            envConfig.setConfigParam(EnvironmentConfig.CLEANER_EXPUNGE, "true");
             // 创建环境
@@ -155,11 +157,7 @@ public class BDBPersistentQueue<E extends Serializable> extends AbstractQueue<E>
      */
     @Override
     public int size() {
-        synchronized(tailIndex){
-            synchronized(headIndex){
-                return (int)(tailIndex.get()-headIndex.get());
-            }
-        }
+        return (int)(tailIndex.get()-headIndex.get());
     }
 
     /**
@@ -209,6 +207,20 @@ public class BDBPersistentQueue<E extends Serializable> extends AbstractQueue<E>
         }
         return null;
     }
+
+    public void sync(){
+        synchronized (tailIndex) {
+            synchronized (headIndex) {
+                if(queueDb!=null){
+                    queueDb.sync();
+                }
+                if (dbEnv != null){
+                    dbEnv.cleanLog();
+                }
+            }
+        }
+    }
+
     /**
      * 关闭,也就是关闭所是用的BDB数据库但不关闭数据库环境
      */
@@ -223,10 +235,8 @@ public class BDBPersistentQueue<E extends Serializable> extends AbstractQueue<E>
                 dbEnv.close();
             }
         } catch (DatabaseException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (UnsupportedOperationException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -242,14 +252,25 @@ public class BDBPersistentQueue<E extends Serializable> extends AbstractQueue<E>
                 dbEnv.close();
             }
         } catch (DatabaseNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (DatabaseException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } finally{
             if(this.dbDir!=null){
                 new File(this.dbDir).delete();
+            }
+        }
+    }
+
+    public class SyncTask extends Thread {
+        @Override
+        public void run() {
+            try {
+                while (!isStop) {
+                    Thread.sleep(10);
+                    sync();
+                }
+            } catch (InterruptedException e) {
             }
         }
     }

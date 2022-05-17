@@ -1,10 +1,8 @@
 package com.xck.persistentQueue.normal;
 
 import com.alibaba.fastjson.JSONObject;
-import sun.misc.Contended;
 
 import java.io.*;
-import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -19,26 +17,23 @@ import java.util.concurrent.atomic.AtomicLong;
  **/
 public class NormalPersistentQueue<E extends Serializable> extends AbstractQueue<E> {
 
-    @Contended
+    private String queueName;
     private String queueHomePath;
-    @Contended
+    //写入批次数量
     private int dealbatchSize;
-    @Contended
-    private int seq = 0;
-    @Contended
-    private long writeTimeout;
-    @Contended
+    private int seq = 0; //文件序列号
+    private long writeTimeout; //缓冲区刷新超时时间
+    //缓冲队列
     private BlockingQueue<E> writeBuffer = new ArrayBlockingQueue<>(5000);
-    @Contended
     private BlockingQueue<E> readBuff = new ArrayBlockingQueue<>(5000);
-    @Contended
+    private BlockingQueue<File> fileBuf = new ArrayBlockingQueue<>(5000);
+
     private volatile boolean isStop;
     private Thread flushBufferThread;
     private Thread readBufferThread;
-    @Contended
     private AtomicLong writeSize = new AtomicLong(0L);
-    @Contended
     private Class clzz;
+    private volatile String curWriteFile; //正在写的文件
 
     public NormalPersistentQueue(String queueHomePath) {
         this.queueHomePath = queueHomePath;
@@ -62,6 +57,7 @@ public class NormalPersistentQueue<E extends Serializable> extends AbstractQueue
             try {
                 writeBuffer.put(e);
             } catch (InterruptedException e1) {
+                return false;
                 //save
             }
         }
@@ -73,14 +69,10 @@ public class NormalPersistentQueue<E extends Serializable> extends AbstractQueue
     public E poll() {
         E e = readBuff.poll();
         if (e == null) {
-            e = writeBuffer.poll();
-            if (e == null) {
-                readBufferThread.interrupt();
-                try {
-                    e = readBuff.take();
-                } catch (InterruptedException e1) {
-                    //
-                }
+            try {
+                e = readBuff.take();
+            } catch (InterruptedException e1) {
+                //
             }
         }
         return e;
@@ -101,38 +93,20 @@ public class NormalPersistentQueue<E extends Serializable> extends AbstractQueue
         return writeBuffer.size() + readBuff.size() + (int) writeSize.get();
     }
 
-    /**
-     * 60ms~120ms
-     *
-     * @param list
-     */
     public void flush(List<E> list) {
-        long start = System.currentTimeMillis();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-        String fileName = sdf.format(System.currentTimeMillis()) + (seq++) % 10000 + "_" + list.size();
-        File file = new File(queueHomePath + "/" + fileName);
-        if (!file.getParentFile().exists()) {
-            file.getParentFile().mkdir();
-        }
+        File file = getWriteFile(list.size());
+        this.curWriteFile = file.getAbsolutePath();
         boolean isSuc = false;
         BufferedWriter fw = null;
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(file, true);
             fw = new BufferedWriter(new OutputStreamWriter(fos, "UTF-8"));
-            for (E e : list) {
-                try {
-                    fw.write(JSONObject.toJSONString(e));
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-                fw.newLine();
-            }
+            fw.write(JSONObject.toJSONString(list));
             fw.flush();
             fos.getFD().sync();
             isSuc = true;
         } catch (Exception e) {
-            System.out.println(list);
             e.printStackTrace();
         } finally {
             try {
@@ -142,10 +116,25 @@ public class NormalPersistentQueue<E extends Serializable> extends AbstractQueue
             } catch (IOException e1) {
             }
             if (isSuc) {
+                fileBuf.offer(file);
                 writeSize.addAndGet(list.size());
+                this.curWriteFile = null;
             }
-//            System.out.println("写: " + (System.currentTimeMillis() - start));
         }
+    }
+
+    private File getWriteFile(int writeSize) {
+        if (seq >= 10000) {
+            seq = 1;
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+        String fileName = sdf.format(System.currentTimeMillis()) + seq + "_" + writeSize;
+        File file = new File(queueHomePath + "/" + fileName);
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdir();
+        }
+        return file;
     }
 
     /**
@@ -153,34 +142,7 @@ public class NormalPersistentQueue<E extends Serializable> extends AbstractQueue
      *
      * @return
      */
-    public List<E> read() {
-        File dir = new File(queueHomePath);
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
-        File[] fileList = dir.listFiles();
-        if (fileList.length == 0) {
-            return null;
-        }
-        List<File> files = new ArrayList<>();
-        for (File f : fileList) {
-            if (f.length() == 0) {
-                continue;
-            }
-            files.add(f);
-        }
-        if (files.isEmpty()) {
-            return null;
-        }
-
-        Collections.sort(files, new Comparator<File>() {
-            @Override
-            public int compare(File o1, File o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
-        File file = files.get(0);
-
+    public List<E> read(File file) {
         long start = System.currentTimeMillis();
         boolean isSuc = false;
         List<E> list = new ArrayList<>();
@@ -188,8 +150,9 @@ public class NormalPersistentQueue<E extends Serializable> extends AbstractQueue
         String line = null;
         try {
             br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+
             while ((line = br.readLine()) != null) {
-                list.add((E)JSONObject.parseObject(line, clzz));
+                list.add((E) JSONObject.parseObject(line, clzz));
             }
             isSuc = true;
         } catch (Exception e) {
@@ -208,6 +171,27 @@ public class NormalPersistentQueue<E extends Serializable> extends AbstractQueue
             System.out.println("读: " + (System.currentTimeMillis() - start));
         }
         return list;
+    }
+
+    /**
+     * 扫描目录文件放入文件信息缓冲区
+     */
+    private void scanDir() {
+        File dir = new File(queueHomePath);
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+        File[] fileList = dir.listFiles();
+        if (fileList.length == 0) {
+            return;
+        }
+        for (int i = 0; i < fileList.length; i++) {
+            File f = fileList[i];
+            if (!f.isFile() || f.getAbsolutePath().equals(curWriteFile)) {
+                continue;
+            }
+            fileBuf.offer(f);
+        }
     }
 
     /**
@@ -234,7 +218,7 @@ public class NormalPersistentQueue<E extends Serializable> extends AbstractQueue
                     }
                     List<E> batchList = new ArrayList<>();
                     for (int i = 0; i < dealbatchSize; i++) {
-                        E e = writeBuffer.take();
+                        E e = writeBuffer.poll();
                         if (e == null) continue;
                         batchList.add(e);
                     }
@@ -256,21 +240,32 @@ public class NormalPersistentQueue<E extends Serializable> extends AbstractQueue
         public void run() {
             while (!isStop) {
                 try {
-                    int remainSize = readBuff.remainingCapacity();
-                    if (remainSize < dealbatchSize && writeSize.get() > 0) {
+                    if (readBuff.remainingCapacity() < dealbatchSize) {
                         Thread.sleep(100);
                         continue;
                     }
-                    List<E> list = read();
+                    //文件等待
+                    File item = fileBuf.poll();
+                    if (item == null) {
+                        scanDir();
+                        item = fileBuf.poll();
+                        if (item == null) {
+                            item = fileBuf.take();
+                        }
+                    }
+                    //读取数据
+                    List<E> list = read(item);
                     if (list == null || list.isEmpty()) {
-                        Thread.sleep(100);
                         continue;
                     }
+
                     for (E e : list) {
                         if (e == null) continue;
                         readBuff.put(e);
                     }
                 } catch (InterruptedException e) {
+                } catch (Throwable e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -283,15 +278,8 @@ public class NormalPersistentQueue<E extends Serializable> extends AbstractQueue
     }
 
     public static void main(String[] args) {
-        String path = "D:/home";
-        NormalPersistentQueue<ArrayList> queue = new NormalPersistentQueue<>(path);
-        List<ArrayList> list = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            ArrayList list1 = new ArrayList();
-            list1.add("1");
-            list.add(list1);
-        }
-        queue.flush(list);
-        System.out.println(queue.read());
+        System.out.println(System.currentTimeMillis());
+        System.out.println(System.currentTimeMillis() / 1000 - 1640024291);
+        System.out.println(1639982179700L);
     }
 }

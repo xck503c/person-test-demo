@@ -55,8 +55,7 @@ public class BlockFileQueue extends AbstractQueue<byte[]> {
     public boolean offer(byte[] bytes) {
         try {
             writeLock.lock();
-            blockFileHeader.putData(bytes);
-            return true;
+            return blockFileHeader.putData(bytes);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

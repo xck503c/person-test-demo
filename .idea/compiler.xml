@@ -11,7 +11,6 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="data-transfer-service" />
         <module name="java-demo-test" />
         <module name="mq" />
         <module name="sms-standard-protocol" />
@@ -20,6 +19,7 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="back-service" target="1.7" />
+      <module name="data-transfer-service" target="1.7" />
       <module name="rocketmq-cli" target="1.8" />
       <module name="Sharding-DB" target="1.8" />
       <module name="xxl-job-test" target="1.8" />
