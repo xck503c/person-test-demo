@@ -28,6 +28,7 @@
         <property name="removeAbandoned" value="true" />
         <property name="removeAbandonedTimeout" value="180" />
         <property name="logAbandoned" value="true" />
+        <property name="connectionProperties" value="oracle.jdbc.useThreadLocalBufferCache=true;pwd=1111" />
     </bean>
 
 </beans>

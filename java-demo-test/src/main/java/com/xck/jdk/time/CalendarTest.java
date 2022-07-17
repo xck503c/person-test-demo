@@ -10,7 +10,35 @@ public class CalendarTest {
             = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public static void main(String[] args) {
-        get();
+        System.out.println(format.format(new Date(getCurrentDate(
+                new Date(getCurrentDate(new Date(), 1)), 2))));
+    }
+
+    public static boolean getRepeatTime(long frist_time, int filter_cycle) {
+        int filter_cycle_day = filter_cycle / 86400;
+        if (filter_cycle_day < 1) {
+            return betweenHours(frist_time, filter_cycle);
+        } else {
+            long curren_time = getCurrentDate(new Date(frist_time), filter_cycle_day);
+            return System.currentTimeMillis() <= curren_time;
+        }
+    }
+
+    private static boolean betweenHours(long frist_time, int filter_cycle) {
+        long future_time = frist_time + (long)filter_cycle * 1000L;
+        long currentDateTime = getCurrentDate(new Date(frist_time), 1);
+        return future_time <= currentDateTime;
+    }
+
+    private static long getCurrentDate(Date currentDate, int day_num) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(currentDate);
+        calendar.set(11, 23);
+        calendar.add(5, day_num - 1);
+        calendar.set(12, 59);
+        calendar.set(13, 59);
+        calendar.set(14, 0);
+        return calendar.getTime().getTime();
     }
 
     public static void get(){

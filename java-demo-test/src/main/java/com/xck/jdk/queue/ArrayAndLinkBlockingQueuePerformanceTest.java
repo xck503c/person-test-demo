@@ -1,5 +1,7 @@
 package com.xck.jdk.queue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -55,7 +57,7 @@ public class ArrayAndLinkBlockingQueuePerformanceTest {
         queue1 = new ArrayBlockingQueue(capacity);
         long t = 0L;
         for(int i=0; i<200; i++){
-            t+=test(producerSize, consumerSize);
+            t+=test1(producerSize, consumerSize);
         }
         System.out.println(t/200);
 
@@ -63,7 +65,7 @@ public class ArrayAndLinkBlockingQueuePerformanceTest {
         queue1 = new LinkedBlockingQueue(capacity);
         t = 0L;
         for(int i=0; i<200; i++){
-            t+=test(producerSize, consumerSize);
+            t+=test1(producerSize, consumerSize);
         }
         System.out.println(t/200);
     }
@@ -101,6 +103,39 @@ public class ArrayAndLinkBlockingQueuePerformanceTest {
         return time;
     }
 
+    public static long test1(int producerSize, int consumerSize) throws InterruptedException{
+        countDownLatch = new CountDownLatch(producerSize + consumerSize);
+        isFinish = new CountDownLatch(producerSize);
+        isTakeFinish = new CountDownLatch(consumerSize);
+        Thread[] takTArr = new Thread[consumerSize];
+        for(int i=0; i<consumerSize; i++){
+            takTArr[i] = new Thread(new TakeBatchTask());
+            takTArr[i].start();
+        }
+
+        for(int i=0; i<producerSize; i++){
+            Thread t1 = new Thread(new PutTask());
+            t1.start();
+        }
+
+        countDownLatch.await();
+
+        long start = System.currentTimeMillis();
+        isFinish.await();
+
+        long time = System.currentTimeMillis()-start;
+        while (queue1.size() > 0) {
+            Thread.sleep(1);
+        }
+        for(Thread thread : takTArr){
+            thread.interrupt();
+        }
+        isTakeFinish.await();
+
+//        System.out.println(times + " " + (System.currentTimeMillis()-start));
+        return time;
+    }
+
     public static class TakeTask implements Runnable{
 
         @Override
@@ -110,6 +145,28 @@ public class ArrayAndLinkBlockingQueuePerformanceTest {
                 countDownLatch.await();
                 while (!Thread.currentThread().isInterrupted()){
                     Object o = queue1.take();
+                }
+            } catch (InterruptedException e) {
+            }
+            isTakeFinish.countDown();
+        }
+    }
+
+    public static class TakeBatchTask implements Runnable{
+
+        @Override
+        public void run() {
+            countDownLatch.countDown();
+            try {
+                countDownLatch.await();
+                List<Object> list = new ArrayList<>();
+                while (!Thread.currentThread().isInterrupted()){
+                    queue1.drainTo(list, 500);
+                    if (list.isEmpty()) {
+                        queue1.take();
+                    } else {
+                        list.clear();
+                    }
                 }
             } catch (InterruptedException e) {
             }
