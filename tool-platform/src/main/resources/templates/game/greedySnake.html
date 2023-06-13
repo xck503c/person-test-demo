@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>贪吃蛇</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body, div {
+            height: 100%;
+            width: 100%;
+        }
+
+        #myCanvas {
+            display: block;
+            border: black 1px solid;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <canvas id="myCanvas"></canvas>
+</div>
+</body>
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script th:src="@{/static/greedySnake/greedySnake.js}"></script>
+<script type="text/javascript">
+    var ctx = $('#myCanvas').get(0).getContext("2d");
+    var greedySnakeCanvas = new GreedySnakeCanvas(ctx);
+    greedySnakeCanvas.initNewSnakeHead();
+</script>
+</html>

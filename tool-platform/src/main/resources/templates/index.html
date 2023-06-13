@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+</head>
+<body>
+<div>
+    <ul id="functionList">功能列表</ul>
+</div>
+</body>
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script type="text/javascript">
+    $.ajax({
+        method: 'post',
+        url: 'urls',
+        contentType: 'application/json',
+        success: function (resp) {
+            if (resp.code == 200) {
+                var data = JSON.parse(resp.data);
+                generatorTreeList($('#functionList').get(0), data);
+            } else {
+                alert('请求异常: ' + resp.desc);
+            }
+        }
+    });
+
+    /**
+     * 递归构建树状列表
+     * @param tagId
+     * @param treeData
+     */
+    function generatorTreeList(tagId, treeData) {
+        for (let k in treeData) {
+            var v = treeData[k];
+
+            if (typeof(v) == 'object') {
+                // 如果是嵌套列表，则li里面其嵌套ul
+                var li = document.createElement("li");
+                li.innerHTML = k;
+                tagId.appendChild(li);
+
+                var ul = document.createElement("ul");
+                li.appendChild(ul);
+
+                generatorTreeList(ul, v);
+            } else {
+                // 如果不是嵌套列表，则<li><a></a></lib>，点击事件
+                var li = document.createElement("li");
+                tagId.appendChild(li);
+
+                var a = document.createElement("a");
+                a.href = v;
+                a.innerHTML = k;
+
+                li.appendChild(a);
+            }
+        }
+    }
+</script>
+</html>

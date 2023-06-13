@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>coding</title>
+</head>
+<body>
+    <div>
+        <form action="file" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept="multipart/form-data"/>
+            <br/>
+            <input type="submit" value="上传">
+        </form>
+    </div>
+    <div>
+        <textarea cols="50" rows="20" id="srcContent" name="srcContent" maxlength="10000"></textarea>
+        <br/>
+        <textarea cols="50" rows="20" id="targetContent" name="targetContent" maxlength="10000" readonly="true"></textarea>
+        <br/>
+        <select id="codingType">
+            <option value="MD5_32">MD5_32</option>
+            <option value="MD5_16">MD5_16</option>
+        </select>
+        <input type="button" onclick="codingText()" value="编码"/>
+    </div>
+</body>
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script th:inline="javascript" type="text/javascript">
+    function codingText() {
+        var ctxPath=[[${#httpServletRequest.getContextPath()}]];
+        var codingType = $('#codingType').val();
+        var srcContent = $('#srcContent').val();
+        var data = {
+            type: 'coding',
+            data: JSON.stringify({
+                content: srcContent,
+                codingType: codingType
+            })
+        };
+        $.ajax({
+            method: 'post',
+            url: 'coding/text',
+            data: JSON.stringify(data),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (resp) {
+                if (resp.code == 200) {
+                    $('#targetContent').val(resp.data);
+                } else {
+                    alert('请求异常: ' + resp.desc);
+                }
+            }
+        });
+    }
+</script>
+</html>

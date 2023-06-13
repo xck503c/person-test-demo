@@ -1,0 +1,41 @@
+<assembly>
+	<id>bin</id>
+	<formats>
+		<format>dir</format>
+	</formats>
+	<dependencySets>
+		<dependencySet>
+			<useProjectArtifact>true</useProjectArtifact>
+			<outputDirectory>lib</outputDirectory>
+		</dependencySet>
+	</dependencySets>
+	<fileSets>
+		<fileSet>
+			<outputDirectory>/</outputDirectory>
+			<includes>
+				<include>ReadMe.txt</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>src/main/com</directory>
+			<outputDirectory>/bin</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>config</directory>
+			<outputDirectory>/config</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>runScript</directory>
+			<outputDirectory>/</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>bin</directory>
+			<outputDirectory>/bin</outputDirectory>
+		</fileSet>
+
+	<fileSet>
+		<directory>lib</directory>
+		<outputDirectory>/lib</outputDirectory>
+	</fileSet>
+	</fileSets>
+</assembly>

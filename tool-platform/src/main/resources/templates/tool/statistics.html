@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>statistics</title>
+</head>
+<body>
+    <div>
+        <textarea cols="50" rows="20" id="content" name="content" maxlength="10000"></textarea>
+        <br/>
+        <input type="button" onclick="charStatistics()" value="字符统计"/>
+        <br/>
+        <select id="charsetName">
+            <option value="UTF-8">UTF-8</option>
+            <option value="GBK">GBK</option>
+            <option value="ISO-8859-1">ISO-8859-1</option>
+            <option value="GSM7bit">GSM7bit</option>
+        </select>
+        <input type="button" onclick="byteStatistics()" value="字节统计"/>
+    </div>
+</body>
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script th:inline="javascript" type="text/javascript">
+    function charStatistics() {
+        var ctxPath=[[${#httpServletRequest.getContextPath()}]];
+        var content = $("#content").val();
+        var data = {
+            type: 'statistics_char',
+            data: JSON.stringify({content:content})
+        };
+
+        /**
+         * 请求data需要传递字符串，否则有问题
+         * 返回data是对象不是字符串
+         */
+        $.ajax({
+            method: 'post',
+            url: 'statistics/char',
+            data: JSON.stringify(data),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (resp) {
+                if (resp.code == 200) {
+                    alert('字符统计长度: ' + resp.data);
+                } else {
+                    alert('请求异常: ' + resp.desc);
+                }
+            }
+        });
+    }
+
+    function byteStatistics() {
+        var ctxPath=[[${#httpServletRequest.getContextPath()}]];
+        var charsetName = $("#charsetName").val();
+        var content = $("#content").val();
+        var data = {
+            type: 'statistics_byte',
+            data: JSON.stringify({
+                charsetName: charsetName,
+                content: content
+            })
+        };
+
+        /**
+         * 请求data需要传递字符串，否则有问题
+         * 返回data是对象不是字符串
+         */
+        $.ajax({
+            method: 'post',
+            url: 'statistics/byte',
+            data: JSON.stringify(data),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (data) {
+                var resp = data;
+                if (resp.code == 200) {
+                    alert('字节统计长度: ' + resp.data);
+                } else {
+                    alert('请求异常: ' + resp.desc);
+                }
+            }
+        });
+    }
+</script>
+</html>

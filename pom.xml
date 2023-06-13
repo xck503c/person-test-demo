@@ -13,6 +13,7 @@
         <module>springboot-redis</module>
         <module>mq</module>
         <module>java-demo-test</module>
+        <module>tool-platform</module>
     </modules>
 
     <build>
@@ -58,6 +59,18 @@
             <artifactId>lombok</artifactId>
             <version>1.16.2</version>
             <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>technology.tabula</groupId>
+            <artifactId>tabula</artifactId>
+            <version>1.0.3</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-simple</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
