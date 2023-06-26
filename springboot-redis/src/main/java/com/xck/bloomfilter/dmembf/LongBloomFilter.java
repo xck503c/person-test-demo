@@ -112,4 +112,12 @@ public class LongBloomFilter<T> {
     public boolean doStop() {
         return longBitMap.doStop();
     }
+
+    @Override
+    public String toString() {
+        return "LongBloomFilter{" +
+                "longBitMap=" + longBitMap +
+                ", numFunc=" + numHashFunctions +
+                '}';
+    }
 }

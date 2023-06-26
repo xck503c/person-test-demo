@@ -3,8 +3,10 @@ import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import com.xck.bloomfilter.dmembf.LongBitMap;
 import com.xck.bloomfilter.dmembf.LongBloomFilter;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Test;
 
+import java.io.BufferedInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

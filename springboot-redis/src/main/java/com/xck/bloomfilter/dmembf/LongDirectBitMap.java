@@ -21,7 +21,7 @@ public class LongDirectBitMap implements LongBitMap {
     public LongDirectBitMap(long numBits) {
 
         int len = Ints.checkedCast(LongMath.divide(numBits, 64, RoundingMode.CEILING));
-        this.bitSize = len * 64;
+        this.bitSize = len * 64L;
 
         byteBuffer = new ByteBuffer[8];
         for (int i = 0; i < byteBuffer.length; i++) {
@@ -30,7 +30,7 @@ public class LongDirectBitMap implements LongBitMap {
     }
 
     public LongDirectBitMap(int len) {
-        this.bitSize = len * 64;
+        this.bitSize = len * 64L;
         byteBuffer = new ByteBuffer[8];
         for (int i = 0; i < byteBuffer.length; i++) {
             byteBuffer[i] = ByteBuffer.allocateDirect(len);
@@ -122,5 +122,12 @@ public class LongDirectBitMap implements LongBitMap {
         }
         tmp.flip();
         return tmp.getLong();
+    }
+
+    @Override
+    public String toString() {
+        return "{bitSize=" + bitSize/8/1024 + "KB" +
+                ", bitCount=" + bitCount +
+                '}';
     }
 }
