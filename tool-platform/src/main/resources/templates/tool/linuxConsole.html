@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>linux服务器终端</title>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="input-group col-md-2">
+                <span class="input-group-addon">跳板机ip</span>
+                <input type="text" id="jumpIp"/>
+            </div>
+            <div class="input-group col-md-2">
+                <span class="input-group-addon">跳板机port</span>
+                <input type="text" id="jumpPort"/>
+            </div>
+            <div class="input-group col-md-2">
+                <span class="input-group-addon">跳板机密码</span>
+                <input type="password" id="jumpPassword"/>
+            </div>
+            <div class="input-group col-md-2">
+                <span class="input-group-addon">目标ip</span>
+                <input type="text" id="targetIp"/>
+            </div>
+            <div class="input-group col-md-2">
+                <span class="input-group-addon">目标服务器的dockerId</span>
+                <input type="text" id="dockerId"/>
+            </div>
+            <div class="input-group col-md-2">
+                <span class="input-group-addon">命令执行结果输出文件</span>
+                <input type="text" id="fileUrl"/>
+            </div>
+            <div class="btn-group col-md-3">
+                <button type="button" class="btn btn-default" onclick="newSession()">登录</button>
+                <button type="button" class="btn btn-default" onclick="commandSubmit()">命令提交</button>
+                <button type="button" class="btn btn-default" onclick="closeSession()">退出登录</button>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-5">
+                <textarea cols="100" rows="30" id="targetContent" readonly="true"></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5">
+                <textarea cols="100" rows="2" id="console"></textarea>
+            </div>
+        </div>
+    </div>
+
+    </div>
+</body>
+<!-- 新 Bootstrap 核心 CSS 文件 -->
+<link href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+<!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script th:inline="javascript" type="text/javascript">
+
+    $('#console').on('input', function (event) {
+        var newValue = event.target.value;
+        if (newValue.endsWith('\n')) {
+            commandSubmit();
+        }
+    })
+
+    /**
+     * 創建會話
+     */
+    function newSession() {
+        var data = {
+            type: 'linuxServer',
+            data: JSON.stringify({
+                jumpIp: $('#jumpIp').val(),
+                jumpPort: $('#jumpPort').val(),
+                jumpPassword: $('#jumpPassword').val(),
+                targetIp: $('#targetIp').val(),
+                dockerId: $('#dockerId').val()
+            })
+        };
+
+        $.ajax({
+            method: 'post',
+            url: 'console/newSession',
+            data: JSON.stringify(data),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (resp) {
+                var targetContent = $('#targetContent').val();
+                if (resp.code == 200) {
+                    $('#targetContent').val(targetContent + '\n' + resp.data);
+                } else {
+                    $('#targetContent').val(targetContent + '\n' + resp.desc);
+                }
+            }
+        });
+    }
+
+    function commandSubmit() {
+        var data = {
+            type: 'linuxServer',
+            data: JSON.stringify({
+                command: $('#console').val(),
+                fileUrl: $('#fileUrl').val()
+            })
+        };
+
+        $('#targetContent').val(targetContent + '\n' + '>' + $('#console').val());
+
+        $.ajax({
+            method: 'post',
+            url: 'console/command',
+            data: JSON.stringify(data),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (resp) {
+                var targetContent = $('#targetContent').val();
+                if (resp.code == 200) {
+                    $('#targetContent').val(targetContent + '\n' + resp.data);
+                } else {
+                    $('#targetContent').val(targetContent + '\n' + resp.desc);
+                }
+                $('#console').val('')
+            }
+        });
+    }
+
+    function closeSession() {
+        var data = {
+            type: 'linuxServer',
+            data: JSON.stringify({})
+        };
+
+        $.ajax({
+            method: 'post',
+            url: 'console/closeSession',
+            data: JSON.stringify(data),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (resp) {
+                var targetContent = $('#targetContent').val();
+                if (resp.code == 200) {
+                    $('#targetContent').val(targetContent + '\n' + resp.data);
+                } else {
+                    $('#targetContent').val(targetContent + '\n' + resp.desc);
+                }
+            }
+        });
+    }
+
+</script>
+</html>
