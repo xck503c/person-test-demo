@@ -1,9 +1,11 @@
-package com.xck.toolplatform.form;
+package com.xck.toolplatform.model.base;
 
 public class Response {
 
     public final static int SUCCESS = 200;
-    public final static int ERR_PARAMS = 200;
+    public final static int ERR_PARAMS = 201;
+
+    public final static int ERR_OTHER = 202;
 
     private String data;
 

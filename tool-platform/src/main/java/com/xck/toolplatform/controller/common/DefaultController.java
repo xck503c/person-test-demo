@@ -1,10 +1,9 @@
-package com.xck.toolplatform.common;
+package com.xck.toolplatform.controller.common;
 
 import com.alibaba.fastjson.JSONObject;
 import com.xck.toolplatform.config.UrlConfig;
-import com.xck.toolplatform.form.Response;
+import com.xck.toolplatform.model.base.Response;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;

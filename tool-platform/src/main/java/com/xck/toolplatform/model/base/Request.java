@@ -1,4 +1,4 @@
-package com.xck.toolplatform.form;
+package com.xck.toolplatform.model.base;
 
 public class Request {
 

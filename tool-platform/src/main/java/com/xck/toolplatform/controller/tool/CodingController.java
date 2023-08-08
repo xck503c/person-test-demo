@@ -1,10 +1,10 @@
-package com.xck.toolplatform.tool;
+package com.xck.toolplatform.controller.tool;
 
 import cn.hutool.core.codec.Base64Encoder;
 import cn.hutool.crypto.digest.MD5;
 import com.alibaba.fastjson.JSONObject;
-import com.xck.toolplatform.form.Request;
-import com.xck.toolplatform.form.Response;
+import com.xck.toolplatform.model.base.Request;
+import com.xck.toolplatform.model.base.Response;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
