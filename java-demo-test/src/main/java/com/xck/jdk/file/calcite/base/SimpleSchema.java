@@ -1,4 +1,4 @@
-package com.xck.jdk.file.calcite;
+package com.xck.jdk.file.calcite.base;
 
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
@@ -22,6 +22,8 @@ public class SimpleSchema extends AbstractSchema {
 
     private TableMetaReader tableMetaReader;
 
+    private Map<String, Table> tableMap;
+
     public SimpleSchema(File baseDir, Class rowEnumeratorClass, String fileSuffix, TableMetaReader tableMetaReader) {
         this.baseDir = baseDir;
         this.rowEnumeratorClass = rowEnumeratorClass;
@@ -31,21 +33,27 @@ public class SimpleSchema extends AbstractSchema {
 
     @Override
     protected Map<String, Table> getTableMap() {
+        if (tableMap != null) {
+            return tableMap;
+        }
+
         final Source baseSource = Sources.of(baseDir);
-        // 过滤.csv文件结尾的文件
+        // 过滤指定文件结尾的文件
         File[] files = baseDir.listFiles((dir, name) -> name.endsWith(fileSuffix));
 
         // 将路径和csvTable对象进行映射
         Map<String, Table> tables = new HashMap<>();
         for (File file : files) {
             final Source source = Sources.of(file);
+            // 去除文件名后缀名，获取表名
             final Source sourceSansCsv = source.trimOrNull(fileSuffix);
             if (sourceSansCsv != null) {
-                SimpleTable simpleTable = new SimpleTable(file, rowEnumeratorClass, tableMetaReader);
-                tables.put(sourceSansCsv.relative(baseSource).path(), simpleTable);
+                String tableName = sourceSansCsv.relative(baseSource).path();
+                SimpleTable simpleTable = new SimpleTable(tableName, file, rowEnumeratorClass, tableMetaReader);
+                tables.put(tableName, simpleTable);
             }
         }
-
-        return tables;
+        tableMap = tables;
+        return tableMap;
     }
 }

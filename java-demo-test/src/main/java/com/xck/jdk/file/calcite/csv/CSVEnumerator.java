@@ -1,88 +1,49 @@
 package com.xck.jdk.file.calcite.csv;
 
-import cn.hutool.core.text.csv.CsvData;
 import cn.hutool.core.text.csv.CsvReadConfig;
 import cn.hutool.core.text.csv.CsvReader;
 import cn.hutool.core.text.csv.CsvRow;
-import org.apache.calcite.linq4j.Enumerator;
+import com.xck.jdk.file.calcite.base.AbstractEnumerator;
 import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rel.type.RelDataTypeField;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class CSVEnumerator implements Enumerator<Object[]> {
-
-    private File file;
-
-    private RelDataType rowType;
+public class CSVEnumerator extends AbstractEnumerator {
 
     private CsvReader csvReader;
 
-    private final CsvData csvData;
-
     private Iterator<CsvRow> csvIterator;
 
-    public CSVEnumerator(File file, RelDataType rowType) {
-        this.file = file;
-        this.rowType = rowType;
+    /**
+     * 构造器
+     * @param file 所属文件
+     * @param columnTypes 字段类型
+     */
+    public CSVEnumerator(File file, List<RelDataType> columnTypes) {
+        super(file, columnTypes);
         this.csvReader = new CsvReader(file, CsvReadConfig.defaultConfig().setContainsHeader(true));
-        this.csvData = csvReader.read();
-    }
-
-    @Override
-    public Object[] current() {
-        if (csvIterator == null) {
-            reset();
-        }
-
-        CsvRow csvRow = csvIterator.next();
-        Object[] o = new Object[csvRow.size()];
-        List<RelDataType> typeList = rowType.getFieldList()
-                .stream()
-                .map(RelDataTypeField::getType).collect(Collectors.toList());
-        for (int i = 0; i < csvRow.size(); i++) {
-            String value = csvRow.get(i);
-            RelDataType relDataType = typeList.get(i);
-            switch (relDataType.getSqlTypeName().getName()) {
-                case "INTEGER":
-                    o[i] = Integer.parseInt(value);
-                    break;
-                case "BIGINT":
-                    o[i] = Long.parseLong(value);
-                    break;
-                case "REAL":
-                    o[i] = Float.parseFloat(value);
-                    break;
-                case "DOUBLE":
-                    o[i] = Double.parseDouble(value);
-                    break;
-                case "VARCHAR":
-                default:
-                    o[i] = value;
-                    break;
-            }
-        }
-
-
-        return o;
+        this.csvIterator = csvReader.read().iterator();
     }
 
     @Override
     public boolean moveNext() {
-        if (csvIterator == null) {
-            reset();
+        if (csvIterator.hasNext()) {
+            CsvRow csvRow = csvIterator.next();
+            Object[] o = new Object[columnTypes.size()];
+            for (int i = 0; i < csvRow.size(); i++) {
+                // 获取csv文件数据
+                String value = csvRow.get(i);
+                RelDataType relDataType = columnTypes.get(i);
+                o[i] = getValueByRelDataType(relDataType, value);
+            }
+            current = o;
+            return true;
         }
 
-        return csvIterator.hasNext();
-    }
-
-    @Override
-    public void reset() {
-        csvIterator = csvData.iterator();
+        return false;
     }
 
     @Override
