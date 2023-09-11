@@ -109,9 +109,9 @@ public class SubmitConfigItem {
                 this.filePwd = EncryptUtil.deCodeAES(filePwd, SubmitConfig.password);
                 this.zipPwd = EncryptUtil.deCodeAES(zipPwd, SubmitConfig.password);
             } else {
-                setting.set(getName(), filePwdKey, EncryptUtil.encodeAES(filePwd, SubmitConfig.password));
-                setting.set(getName(), zipPwdKey, EncryptUtil.encodeAES(zipPwd, SubmitConfig.password));
-                setting.set(getName(), pwdIsEncodeKey, "1");
+                setting.setByGroup(getName(), filePwdKey, EncryptUtil.encodeAES(filePwd, SubmitConfig.password));
+                setting.setByGroup(getName(), zipPwdKey, EncryptUtil.encodeAES(zipPwd, SubmitConfig.password));
+                setting.setByGroup(getName(), pwdIsEncodeKey, "1");
                 setting.store(setting.getSettingPath());
             }
         } catch (Exception e) {

@@ -22,7 +22,7 @@ public class LinuxServerConsoleController {
     @RequestMapping(path = {"", "/"}, method = RequestMethod.GET)
     public ModelAndView linuxIndex() {
         ModelAndView modelAndView = new ModelAndView();
-        modelAndView.setViewName("linuxConsole");
+        modelAndView.setViewName("tool/linuxserver/linuxConsole");
         return modelAndView;
     }
 

@@ -8,7 +8,8 @@ public class UrlConfig {
     public final static String TOOL_STATISTICS = "tool/statistics";
     public final static String TOOL_CODING= "tool/coding";
 
-    public final static String TOOL_LINUX_SERVER= "tool/linux/server";
+    public final static String TOOL_LINUX_SERVER= "tool/linux/server/console";
+    public final static String TOOL_LINUX_SERVER_MANAGER= "tool/linux/server/manager";
 
     public final static String GAME_GREEDY_SNAKE = "game/greedySnake";
 
@@ -18,7 +19,8 @@ public class UrlConfig {
         Map<String, Object> toolUrls = new LinkedHashMap<String, Object>(){{
             put("文本长度获取", TOOL_STATISTICS);
             put("编码转换处理", TOOL_CODING);
-            put("linux服务器", TOOL_LINUX_SERVER);
+            put("linux服务器终端", TOOL_LINUX_SERVER);
+            put("linux服务器信息管理", TOOL_LINUX_SERVER_MANAGER);
         }};
         put("工具类", toolUrls);
 

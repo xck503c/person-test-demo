@@ -2,7 +2,8 @@ package com.xck.toolplatform.model.linux;
 
 public class XShellConfig {
 
-    private String jumpUser;
+    private Long id;
+
     private String jumpIp;
     private int jumpPort;
     private String jumpPwd;
@@ -16,12 +17,12 @@ public class XShellConfig {
 
     private int connectTimeout = 10000;
 
-    public String getJumpUser() {
-        return jumpUser;
+    public Long getId() {
+        return id;
     }
 
-    public void setJumpUser(String jumpUser) {
-        this.jumpUser = jumpUser;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getJumpIp() {

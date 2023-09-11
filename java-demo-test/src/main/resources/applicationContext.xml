@@ -11,24 +11,24 @@
     <context:annotation-config/>
     <context:component-scan base-package="com.xck" />
 
-    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
-        init-method="init" destroy-method="close">
-        <property name="url" value="${db.url}" />
-        <property name="username" value="${db.username}" />
-        <property name="password" value="${db.password}" />
-        <property name="initialSize" value="${db.initialSize}" />
-        <property name="minIdle" value="${db.minIdle}" />
-        <property name="maxActive" value="${db.maxActive}" />
-        <property name="maxWait" value="${db.maxWait}" />
-        <property name="timeBetweenEvictionRunsMillis" value="60000" />
-        <property name="validationQuery" value="SELECT 'X'" />
-        <property name="testWhileIdle" value="true" />
-        <property name="testOnBorrow" value="false" />
-        <property name="testOnReturn" value="false" />
-        <property name="removeAbandoned" value="true" />
-        <property name="removeAbandonedTimeout" value="180" />
-        <property name="logAbandoned" value="true" />
-        <property name="connectionProperties" value="oracle.jdbc.useThreadLocalBufferCache=true;pwd=1111" />
-    </bean>
+<!--    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"-->
+<!--        init-method="init" destroy-method="close">-->
+<!--        <property name="url" value="${db.url}" />-->
+<!--        <property name="username" value="${db.username}" />-->
+<!--        <property name="password" value="${db.password}" />-->
+<!--        <property name="initialSize" value="${db.initialSize}" />-->
+<!--        <property name="minIdle" value="${db.minIdle}" />-->
+<!--        <property name="maxActive" value="${db.maxActive}" />-->
+<!--        <property name="maxWait" value="${db.maxWait}" />-->
+<!--        <property name="timeBetweenEvictionRunsMillis" value="60000" />-->
+<!--        <property name="validationQuery" value="SELECT 'X'" />-->
+<!--        <property name="testWhileIdle" value="true" />-->
+<!--        <property name="testOnBorrow" value="false" />-->
+<!--        <property name="testOnReturn" value="false" />-->
+<!--        <property name="removeAbandoned" value="true" />-->
+<!--        <property name="removeAbandonedTimeout" value="180" />-->
+<!--        <property name="logAbandoned" value="true" />-->
+<!--        <property name="connectionProperties" value="oracle.jdbc.useThreadLocalBufferCache=true;pwd=1111" />-->
+<!--    </bean>-->
 
 </beans>

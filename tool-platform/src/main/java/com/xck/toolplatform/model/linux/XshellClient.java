@@ -25,7 +25,7 @@ public class XshellClient {
 
     public boolean start() {
         try {
-            session = jsch.getSession(xShellConfig.getJumpUser(), xShellConfig.getJumpIp(), xShellConfig.getJumpPort());
+            session = jsch.getSession(null, xShellConfig.getJumpIp(), xShellConfig.getJumpPort());
             session.setConfig("StrictHostKeyChecking", "no"); // 不验证 HostKey
             session.setPassword(xShellConfig.getJumpPwd());
             session.connect(xShellConfig.getConnectTimeout());

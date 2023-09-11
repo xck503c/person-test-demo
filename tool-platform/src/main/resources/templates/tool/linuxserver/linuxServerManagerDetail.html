@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>服务器信息添加</title>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="input-group col-md-2">
+                <span class="input-group-addon">跳板机ip</span>
+                <input type="text" th:value="${data.jumpIp}" id="jumpIp"/>
+            </div>
+            <div class="input-group col-md-2">
+                <span class="input-group-addon">跳板机port</span>
+                <input type="text" th:value="${data.jumpPort}" id="jumpPort"/>
+            </div>
+            <div class="input-group col-md-2">
+                <span class="input-group-addon">跳板机密码</span>
+                <input type="password" th:value="${data.jumpPwd}" id="jumpPassword"/>
+            </div>
+            <div class="input-group col-md-2">
+                <span class="input-group-addon">目标ip</span>
+                <input type="text" th:value="${data.targetIp}" id="targetIp"/>
+            </div>
+            <div class="input-group col-md-2">
+                <span class="input-group-addon">目标服务器的dockerId</span>
+                <input type="text" th:value="${data.dockerId}" id="dockerId"/>
+            </div>
+            <div class="input-group col-md-2">
+                <span class="input-group-addon">说明</span>
+                <input type="text" th:value="${data.comment}" id="comment"/>
+            </div>
+            <div class="btn-group col-md-2">
+                <button type="button" class="btn btn-default" onclick="submit()">提交</button>
+                <button type="button" class="btn btn-default"><a href="manager">取消</a></button>
+            </div>
+        </div>
+    </div>
+</body>
+<!-- 新 Bootstrap 核心 CSS 文件 -->
+<link href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+<!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script th:inline="javascript" type="text/javascript">
+    function submit() {
+        var data = {
+            type: 'linuxServer',
+            data: JSON.stringify({
+                jumpIp: $('#jumpIp').val(),
+                jumpPort: $('#jumpPort').val(),
+                jumpPassword: $('#jumpPassword').val(),
+                targetIp: $('#targetIp').val(),
+                dockerId: $('#dockerId').val(),
+                comment: $('#comment').val()
+            })
+        };
+
+        $.ajax({
+            method: 'post',
+            url: 'manager/addXshellConfig',
+            data: JSON.stringify(data),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (resp) {
+                var targetContent = $('#targetContent').val();
+                if (resp.code == 200) {
+                    alert(resp.data)
+                    // 跳转回去
+                    window.location.href='manager';
+                } else {
+                    $('#targetContent').val(targetContent + '\n' + resp.desc);
+                }
+            }
+        });
+    }
+</script>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>服务器管理</title>
+</head>
+<body>
+    <!--100% 宽度-->
+    <div class="container-fluid">
+        <div class="row">
+            <button type="button" class="btn btn-default"><a href="manager/addPage">添加</a></button>
+        </div>
+        <div class="row">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox"/></th>
+                        <th>序号</th>
+                        <th>跳板机ip</th>
+                        <th>跳板机port</th>
+                        <th>目标服务器ip</th>
+                        <th>dockerId</th>
+                        <th>说明</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tr th:each="item:${data}">
+                    <td><input type="checkbox" class="check"/></td>
+                    <td th:text="${item.id}"></td>
+                    <td th:text="${item.jumpIp}"></td>
+                    <td th:text="${item.jumpPort}"></td>
+                    <td th:text="${item.targetIp}"></td>
+                    <td th:text="${item.dockerId}"></td>
+                    <td th:text="${item.comment}"></td>
+                    <td>
+                        <button type="button" class="btn btn-default" th:data-id="${item.id}" onclick="doModify(this.getAttribute('data-id'))">修改</button>
+                        <button type="button" class="btn btn-default" th:data-id="${item.id}" onclick="doDelete(this.getAttribute('data-id'))">删除</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</body>
+<!-- 新 Bootstrap 核心 CSS 文件 -->
+<link href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+<!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script th:inline="javascript" type="text/javascript">
+
+    function doModify(id) {
+        window.location.href = 'manager/updatePage/' + id;
+    }
+
+    function doDelete(id) {
+        alert(id);
+    }
+
+</script>
+</html>
