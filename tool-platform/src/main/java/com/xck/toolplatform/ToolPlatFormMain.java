@@ -8,7 +8,7 @@ public class ToolPlatFormMain {
 
     public static void main(String[] args) {
         try {
-            SpringApplication.run(ToolPlatFormMain.class);
+            SpringApplication.run(ToolPlatFormMain.class, args);
             Thread.sleep(1000000L);
         } catch (Exception e) {
             e.printStackTrace();

@@ -18,5 +18,6 @@ springboot+tomcat+thymeleaf+bootstrap+sqllite
 1. 字符串编码转换展示：转md5，转base64，转16进制
 2. 字符串长度统计：字节(可选编码)长度统计，gsm7bit长度统计
 3. linux服务器命令登录操作访问
+4. 贪吃蛇
 
 ==========================
