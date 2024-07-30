@@ -8,10 +8,9 @@ import redis.clients.jedis.Pipeline;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class TestRedisCommand {
 
@@ -195,7 +194,7 @@ public class TestRedisCommand {
     }
 
     @Test
-    public void byteDisplay() throws Exception{
+    public void byteDisplay() throws Exception {
         System.out.println(Long.MAX_VALUE);
         RedisPool pool = new RedisPool();
         pool.init();
@@ -214,10 +213,10 @@ public class TestRedisCommand {
             Pipeline pipeline = jedis.pipelined();
             for (int j = 1000; j < 2000; j++) {
 //                pipeline.hset("td1", "123456789abc" + i + j, "【北京欢迎您哈】:" + (System.currentTimeMillis() / (24*3660000L)));
-                pipeline.zadd("td1", (System.currentTimeMillis() / (24*3660000L)), "123456789abc" + i + j +  "【北京欢迎您哈】:");
+                pipeline.zadd("td1", (System.currentTimeMillis() / (24 * 3660000L)), "123456789abc" + i + j + "【北京欢迎您哈】:");
             }
             pipeline.syncAndReturnAll();
-            long l  = 999999999999999999L;
+            long l = 999999999999999999L;
             System.out.println(Long.MAX_VALUE);
 
             pool.returnJedis(jedis);
@@ -251,8 +250,8 @@ public class TestRedisCommand {
 //                pipeline.sadd("test" + j, String.valueOf(i));
 //              pipeline.zadd("test" + j, System.currentTimeMillis(), String.valueOf(i));
 //                pipeline.hset("test" + j,  String.valueOf(i), "{\"age\":\""+System.currentTimeMillis()+"\"}");
-                pipeline.hset("test" + j,  String.valueOf(i)
-                        , Long.valueOf(Long.MAX_VALUE) + ":" + (System.currentTimeMillis()/3600000L));
+                pipeline.hset("test" + j, String.valueOf(i)
+                        , Long.valueOf(Long.MAX_VALUE) + ":" + (System.currentTimeMillis() / 3600000L));
                 ++count;
                 if (count > 1000) {
                     pipeline.sync();
@@ -282,18 +281,34 @@ public class TestRedisCommand {
                 + " return -1";
 
         try {
-            System.out.println(jedis.scriptLoad(isBlackLuaString));;
+            System.out.println(jedis.scriptLoad(isBlackLuaString));
+            ;
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    @Test
+    public void testUUIDtoOneNumberMemory() {
+        RedisPool pool = new RedisPool();
+        pool.init();
+
+        Jedis jedis = pool.getJedis();
+
+        for (int i = 0; i < 1000000; i++) {
+            jedis.hset("aaaaaaaaaaaaaaaaaaa", UUID.randomUUID().toString(), "0");
+        }
+
+        jedis.close();
+    }
+
     /**
      * 判断黑名单是否命中，命中了是否在时间范围内
+     *
      * @throws Exception
      */
     @Test
-    public void testIsBlackLuaStringV3() throws Exception{
+    public void testIsBlackLuaStringV3() throws Exception {
         RedisPool pool = new RedisPool();
         pool.initPwdSentinel();
 //        pool.init();
@@ -387,28 +402,48 @@ public class TestRedisCommand {
 //        }
 //        System.out.println(o);
 
+        System.out.println("redis存储: " + new String(jedis.hget("black:mobile:set:server:v3".getBytes("utf-8"), longStrToByteArr("51608258924"))));
+
+        System.out.println("数据时间: " + parseAndToDayTimeStamp("2021-05-22 10:21:23"));
+
         List<byte[]> mobilesByte = new ArrayList<>();
 //        mobilesByte.add(String.valueOf(-1).getBytes("utf-8"));
-        mobilesByte.add(String.valueOf(19864).getBytes("utf-8"));
+        long nowMonth = System.currentTimeMillis() / (24 * 3600000L);
+        long min = nowMonth - 30;
+        System.out.println("账户配置: " + min);
+        mobilesByte.add(String.valueOf(min).getBytes("utf-8"));
 //        mobilesByte.add(String.valueOf(19866).getBytes("utf-8"));
 
         List<byte[]> keyList = new ArrayList<>();
-        mobilesByte.add(longStrToByteArr("51608258924"));
+//        mobilesByte.add(longStrToByteArr("51608258924"));
+        mobilesByte.add(longStrToByteArr("34608258964"));
 //        mobilesByte.add(longStrToByteArr("51608258925"));
         keyList.add("black:mobile:set:server:v3".getBytes("utf-8"));
         try {
             Object o = jedis.eval(isBlackLuaStringV3Bytes, keyList, mobilesByte);
             System.out.println(o);
-            System.out.println(new String((byte[] )o));
-            System.out.println(jedis.eval(isBlackLuaStringV3Bytes, keyList, mobilesByte));;
+            System.out.println(new String((byte[]) o));
+            System.out.println(jedis.eval(isBlackLuaStringV3Bytes, keyList, mobilesByte));
+            ;
         } catch (Exception e) {
             e.printStackTrace();
         }
         System.out.println(-1);
     }
 
+    public static long parseAndToDayTimeStamp(String dateString) {
+        try {
+            Date date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateString);
+            long timestamp = date.getTime();
+            return timestamp / (24 * 3600000L);
+        } catch (ParseException e) {
+        }
+
+        return -1;
+    }
+
     @Test
-    public void testUpdateOnlineBlackLuaStringV2() throws Exception{
+    public void testUpdateOnlineBlackLuaStringV2() throws Exception {
         RedisPool pool = new RedisPool();
         pool.init();
 
@@ -443,7 +478,7 @@ public class TestRedisCommand {
     }
 
     public static void main(String[] args) {
-        System.out.println(String.valueOf(5f/100000f));
+        System.out.println(String.valueOf(5f / 100000f));
         System.out.println(Float.valueOf(0.00005f));
 
         long millisSecond = System.currentTimeMillis() + 1000;

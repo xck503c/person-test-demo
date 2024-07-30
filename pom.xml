@@ -9,11 +9,12 @@
     <packaging>pom</packaging>
     <version>1.0.0</version>
     <modules>
-        <module>standard-protocol</module>
+<!--        <module>standard-protocol</module>-->
         <module>springboot-redis</module>
         <module>mq</module>
         <module>java-demo-test</module>
         <module>tool-platform</module>
+        <module>springboot-test</module>
     </modules>
 
     <build>

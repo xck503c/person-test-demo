@@ -49,11 +49,19 @@ public class RedisPool {
             jedisPoolConfig.setMinIdle(60000);
 
             Set<String> ips = new HashSet<String>();
-            ips.add("127.0.0.1:28881");
-            ips.add("127.0.0.1:28882");
-            ips.add("127.0.0.1:28883");
+//            ips.add("127.0.0.1:28881");
+//            ips.add("127.0.0.1:28882");
+//            ips.add("127.0.0.1:28883");
+//            ips.add("172.17.114.155:26419");
+//            ips.add("172.17.114.192:26419");
+//            ips.add("172.17.114.250:26419");
 
-            jedisSentinelPool = new JedisSentinelPool("mymaster", ips, jedisPoolConfig, "123456");
+            ips.add("172.17.114.155:26420");
+            ips.add("172.17.114.192:26420");
+            ips.add("172.17.114.250:26420");
+
+//            jedisSentinelPool = new JedisSentinelPool("mymaster", ips, jedisPoolConfig, "123456");
+            jedisSentinelPool = new JedisSentinelPool("mymaster", ips, jedisPoolConfig);
             mode = "sentinel";
         }
     }
