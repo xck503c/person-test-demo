@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 @Controller
 @RequestMapping("/tool/linux/server/manager")
@@ -49,14 +50,21 @@ public class LinuxServerManagerController {
         String requestData = request.getData();
         JSONObject jsonObject = JSONObject.parseObject(requestData);
         XShellConfig xShellConfig = new XShellConfig();
+        xShellConfig.setId(jsonObject.getLong("id"));
         xShellConfig.setJumpIp(jsonObject.getString("jumpIp"));
         xShellConfig.setJumpPort(jsonObject.getIntValue("jumpPort"));
         xShellConfig.setJumpPwd(jsonObject.getString("jumpPassword"));
         xShellConfig.setTargetIp(jsonObject.getString("targetIp"));
         xShellConfig.setDockerId(jsonObject.getString("dockerId"));
         xShellConfig.setComment(jsonObject.getString("comment"));
-        linuxServerManager.create(xShellConfig);
-        return Response.success("添加成功!!!");
+
+        if (xShellConfig.getId() != null) {
+            linuxServerManager.update(xShellConfig);
+            return Response.success("更新成功!!!");
+        } else {
+            linuxServerManager.create(xShellConfig);
+            return Response.success("添加成功!!!");
+        }
     }
 
     @RequestMapping(path = {"/delXshellConfig"}, method = RequestMethod.POST)
@@ -76,5 +84,16 @@ public class LinuxServerManagerController {
         JSONObject jsonObject = JSONObject.parseObject(requestData);
         Long id = jsonObject.getLong("id");
         return Response.success(JSONObject.toJSONString(linuxServerManager.query(id)));
+    }
+
+    @RequestMapping(path = "/jumpConsole/{id}", method = RequestMethod.GET)
+    public ModelAndView jumpConsole(@PathVariable Long id) {
+
+        XShellConfig xShellConfig = linuxServerManager.query(id);
+
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName("tool/linuxserver/linuxConsole");
+        modelAndView.addObject("data", xShellConfig);
+        return modelAndView;
     }
 }

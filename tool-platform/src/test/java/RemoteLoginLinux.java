@@ -18,15 +18,15 @@ public class RemoteLoginLinux {
     public static void main(String[] args) throws Exception {
 
         XShellConfig xShellConfig = new XShellConfig();
-        xShellConfig.setJumpIp("192.168.6.49");
+        xShellConfig.setJumpIp("192.138.130.38");
         xShellConfig.setJumpPort(12345);
         xShellConfig.setJumpPwd("xckXCK5038334@");
 //        xShellConfig.setTargetIp("155");
 //        xShellConfig.setDockerId("5dcc6a5f0fde");
 
         // sms-oapi
-        xShellConfig.setTargetIp("172.17.114.220");
-        xShellConfig.setDockerId("9a04e281642d");
+//        xShellConfig.setTargetIp("172.17.114.220");
+//        xShellConfig.setDockerId("9a04e281642d");
 
         XshellClient xshellClient = new XshellClient(xShellConfig);
         xshellClient.start();
@@ -45,8 +45,8 @@ public class RemoteLoginLinux {
 //        list.add("grep 'netSmsReqQueue' monitor.log");
 
         List<String> list = new ArrayList<>();
-        list.add("cd /hskj/sms-oapi/logs");
-        list.add("grep 'erverBlackMobilePullReqThread' info.log");
+//        list.add("cd /hskj/sms-oapi/logs");
+        list.add("ll");
 
 
         execute(xshellClient, list);

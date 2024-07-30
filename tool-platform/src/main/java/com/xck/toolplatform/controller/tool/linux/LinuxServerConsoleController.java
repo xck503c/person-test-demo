@@ -8,12 +8,10 @@ import com.xck.toolplatform.model.linux.XShellConfig;
 import com.xck.toolplatform.model.linux.XshellClient;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+@Deprecated
 @Controller
 @RequestMapping("/tool/linux/server/console")
 public class LinuxServerConsoleController {
@@ -79,6 +77,7 @@ public class LinuxServerConsoleController {
             if (StringUtils.isNotBlank(fileUrl)) {
                 FileUtil.writeUtf8String(resp, fileUrl);
             }
+            System.out.println(resp);
             return Response.success(resp);
         } catch (Exception e) {
             return Response.error(Response.ERR_OTHER, "请求异常, msg=" + e.getMessage());

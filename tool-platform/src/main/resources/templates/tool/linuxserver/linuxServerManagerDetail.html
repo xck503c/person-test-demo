@@ -9,31 +9,31 @@
         <div class="row">
             <div class="input-group col-md-2">
                 <span class="input-group-addon">跳板机ip</span>
-                <input type="text" th:value="${data.jumpIp}" id="jumpIp"/>
+                <input type="text" th:value="${data != null ? data.jumpIp : ''}" id="jumpIp"/>
             </div>
             <div class="input-group col-md-2">
                 <span class="input-group-addon">跳板机port</span>
-                <input type="text" th:value="${data.jumpPort}" id="jumpPort"/>
+                <input type="text" th:value="${data != null ? data.jumpPort : ''}" id="jumpPort"/>
             </div>
             <div class="input-group col-md-2">
                 <span class="input-group-addon">跳板机密码</span>
-                <input type="password" th:value="${data.jumpPwd}" id="jumpPassword"/>
+                <input type="password" th:value="${data != null ? data.jumpPwd : ''}" id="jumpPassword"/>
             </div>
             <div class="input-group col-md-2">
                 <span class="input-group-addon">目标ip</span>
-                <input type="text" th:value="${data.targetIp}" id="targetIp"/>
+                <input type="text" th:value="${data != null ? data.targetIp : ''}" id="targetIp"/>
             </div>
             <div class="input-group col-md-2">
                 <span class="input-group-addon">目标服务器的dockerId</span>
-                <input type="text" th:value="${data.dockerId}" id="dockerId"/>
+                <input type="text" th:value="${data != null ? data.dockerId: ''}" id="dockerId"/>
             </div>
             <div class="input-group col-md-2">
                 <span class="input-group-addon">说明</span>
-                <input type="text" th:value="${data.comment}" id="comment"/>
+                <input type="text" th:value="${data != null ? data.comment : ''}" id="comment"/>
             </div>
             <div class="btn-group col-md-2">
-                <button type="button" class="btn btn-default" onclick="submit()">提交</button>
-                <button type="button" class="btn btn-default"><a href="manager">取消</a></button>
+                <button id="submit" type="button" class="btn btn-default" th:data-id="${data != null ? data.id : null}" onclick="submit(this.getAttribute('data-id'))">提交</button>
+                <button type="button" class="btn btn-default" th:onclick="@{'location.href=\'' + ${#httpServletRequest.getContextPath()} + '/tool/linux/server/manager\''}">取消</button>
             </div>
         </div>
     </div>
@@ -45,10 +45,12 @@
 <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
 <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script th:inline="javascript" type="text/javascript">
-    function submit() {
+    var ctxPath=[[${#httpServletRequest.getContextPath()}]];
+    function submit(id) {
         var data = {
             type: 'linuxServer',
             data: JSON.stringify({
+                id: id,
                 jumpIp: $('#jumpIp').val(),
                 jumpPort: $('#jumpPort').val(),
                 jumpPassword: $('#jumpPassword').val(),
@@ -60,7 +62,7 @@
 
         $.ajax({
             method: 'post',
-            url: 'manager/addXshellConfig',
+            url: ctxPath + '/tool/linux/server/manager/addXshellConfig',
             data: JSON.stringify(data),
             dataType: 'json',
             contentType: 'application/json',
@@ -68,8 +70,8 @@
                 var targetContent = $('#targetContent').val();
                 if (resp.code == 200) {
                     alert(resp.data)
-                    // 跳转回去
-                    window.location.href='manager';
+                    // 刷新
+                    window.location.href = ctxPath + '/tool/linux/server/manager';
                 } else {
                     $('#targetContent').val(targetContent + '\n' + resp.desc);
                 }

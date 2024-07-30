@@ -5,75 +5,77 @@
     <title>linux服务器终端</title>
 </head>
 <body>
-    <div class="container">
-        <div class="row">
-            <div class="input-group col-md-2">
-                <span class="input-group-addon">跳板机ip</span>
-                <input type="text" id="jumpIp"/>
-            </div>
-            <div class="input-group col-md-2">
-                <span class="input-group-addon">跳板机port</span>
-                <input type="text" id="jumpPort"/>
-            </div>
-            <div class="input-group col-md-2">
-                <span class="input-group-addon">跳板机密码</span>
-                <input type="password" id="jumpPassword"/>
-            </div>
-            <div class="input-group col-md-2">
-                <span class="input-group-addon">目标ip</span>
-                <input type="text" id="targetIp"/>
-            </div>
-            <div class="input-group col-md-2">
-                <span class="input-group-addon">目标服务器的dockerId</span>
-                <input type="text" id="dockerId"/>
-            </div>
-            <div class="input-group col-md-2">
-                <span class="input-group-addon">命令执行结果输出文件</span>
-                <input type="text" id="fileUrl"/>
-            </div>
-            <div class="btn-group col-md-3">
-                <button type="button" class="btn btn-default" onclick="newSession()">登录</button>
-                <button type="button" class="btn btn-default" onclick="commandSubmit()">命令提交</button>
-                <button type="button" class="btn btn-default" onclick="closeSession()">退出登录</button>
-            </div>
+<div class="container">
+    <div class="row">
+        <div class="input-group col-md-2">
+            <span class="input-group-addon">跳板机ip</span>
+            <input type="text" th:value="${data != null ? data.jumpIp : ''}" id="jumpIp"/>
+        </div>
+        <div class="input-group col-md-2">
+            <span class="input-group-addon">跳板机port</span>
+            <input type="text" th:value="${data != null ? data.jumpPort : ''}" id="jumpPort"/>
+        </div>
+        <div class="input-group col-md-2">
+            <span class="input-group-addon">跳板机密码</span>
+            <input type="password" th:value="${data != null ? data.jumpPwd : ''}" id="jumpPassword"/>
+        </div>
+        <div class="input-group col-md-2">
+            <span class="input-group-addon">目标ip</span>
+            <input type="text" th:value="${data != null ? data.targetIp : ''}" id="targetIp"/>
+        </div>
+        <div class="input-group col-md-2">
+            <span class="input-group-addon">目标服务器的dockerId</span>
+            <input type="text" th:value="${data != null ? data.dockerId : ''}" id="dockerId"/>
+        </div>
+        <div class="input-group col-md-2">
+            <span class="input-group-addon">命令执行结果输出文件</span>
+            <input type="text" id="fileUrl"/>
+        </div>
+        <div class="btn-group col-md-3">
+            <button type="button" class="btn btn-default" onclick="newSession()">登录</button>
+            <button type="button" class="btn btn-default" onclick="closeSession()">退出登录</button>
         </div>
     </div>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-5">
-                <textarea cols="100" rows="30" id="targetContent" readonly="true"></textarea>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-5">
-                <textarea cols="100" rows="2" id="console"></textarea>
-            </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="col-md-10">
+            <div id="targetContent"></div>
         </div>
     </div>
+</div>
 
-    </div>
+</div>
 </body>
 <!-- 新 Bootstrap 核心 CSS 文件 -->
-<link href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
 <!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
 <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
 <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
 <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<link th:href="@{/static/xterm.css}" rel="stylesheet"/>
+<script th:src="@{/static/xterm.js}"></script>
 <script th:inline="javascript" type="text/javascript">
+    var ctxPath = [[${#httpServletRequest.getContextPath()}]];
 
-    $('#console').on('input', function (event) {
-        var newValue = event.target.value;
-        if (newValue.endsWith('\n')) {
-            commandSubmit();
-        }
-    })
+    var term = new Terminal();
+    term.open(document.getElementById('targetContent'));
+    term.writeln('Hello from \x1B[1;3;31mxterm.js\x1B[0m');
+
+    var socket;
+
+    term.onKey(e => {
+        // 直接请求终端，输出的也会同步响应回来，所以这里不用再write
+        // 这里也不需要处理退格问题，我这边按退格，终端会自动响应字符写入页面终端上，自动退格
+        commandSubmit(e.key);
+    });
 
     /**
      * 創建會話
      */
     function newSession() {
         var data = {
-            type: 'linuxServer',
+            type: 'login',
             data: JSON.stringify({
                 jumpIp: $('#jumpIp').val(),
                 jumpPort: $('#jumpPort').val(),
@@ -83,73 +85,50 @@
             })
         };
 
-        $.ajax({
-            method: 'post',
-            url: 'console/newSession',
-            data: JSON.stringify(data),
-            dataType: 'json',
-            contentType: 'application/json',
-            success: function (resp) {
-                var targetContent = $('#targetContent').val();
-                if (resp.code == 200) {
-                    $('#targetContent').val(targetContent + '\n' + resp.data);
-                } else {
-                    $('#targetContent').val(targetContent + '\n' + resp.desc);
-                }
-            }
-        });
+        openWebSocket(data);
     }
 
-    function commandSubmit() {
+    function openWebSocket(data) {
+        const socketUrl = "ws://" + window.location.host + ctxPath + "/tool/linux/server/console/ws";
+        socket = new WebSocket(socketUrl);
+        //打开事件
+        socket.onopen = function () {
+            // 这里data是一个对象，要编码一下
+            socket.send(JSON.stringify(data));
+        };
+        //获得消息事件
+        socket.onmessage = function (msg) {
+            term.write(JSON.parse(msg.data).data);
+        };
+        //关闭事件
+        socket.onclose = function () {
+            console.log("Socket已关闭");
+        };
+        //发生了错误事件
+        socket.onerror = function () {
+            alert("Socket发生了错误");
+        }
+    }
+
+    function commandSubmit(input) {
         var data = {
-            type: 'linuxServer',
+            type: 'command',
             data: JSON.stringify({
-                command: $('#console').val(),
+                command: input,
                 fileUrl: $('#fileUrl').val()
             })
         };
 
-        $('#targetContent').val(targetContent + '\n' + '>' + $('#console').val());
-
-        $.ajax({
-            method: 'post',
-            url: 'console/command',
-            data: JSON.stringify(data),
-            dataType: 'json',
-            contentType: 'application/json',
-            success: function (resp) {
-                var targetContent = $('#targetContent').val();
-                if (resp.code == 200) {
-                    $('#targetContent').val(targetContent + '\n' + resp.data);
-                } else {
-                    $('#targetContent').val(targetContent + '\n' + resp.desc);
-                }
-                $('#console').val('')
-            }
-        });
+        socket.send(JSON.stringify(data));
     }
 
     function closeSession() {
         var data = {
-            type: 'linuxServer',
+            type: 'out',
             data: JSON.stringify({})
         };
 
-        $.ajax({
-            method: 'post',
-            url: 'console/closeSession',
-            data: JSON.stringify(data),
-            dataType: 'json',
-            contentType: 'application/json',
-            success: function (resp) {
-                var targetContent = $('#targetContent').val();
-                if (resp.code == 200) {
-                    $('#targetContent').val(targetContent + '\n' + resp.data);
-                } else {
-                    $('#targetContent').val(targetContent + '\n' + resp.desc);
-                }
-            }
-        });
+        socket.send(JSON.stringify(data));
     }
 
 </script>

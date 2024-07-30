@@ -14,4 +14,6 @@ public interface LinuxServerDao {
     List<XShellConfig> getAll();
     XShellConfig getById(Long id);
     int deleteById(Long id);
+
+    void updateById(XShellConfig xShellConfig);
 }

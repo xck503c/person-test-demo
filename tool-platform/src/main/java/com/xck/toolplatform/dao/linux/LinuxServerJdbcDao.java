@@ -76,4 +76,21 @@ public class LinuxServerJdbcDao implements LinuxServerDao{
         jdbcTemplate.update("delete from xshell_config where id=?", id);
         return 1;
     }
+
+    @Override
+    public void updateById(XShellConfig xShellConfig) {
+        DateTime dateTime = new DateTime();
+        String msStr = dateTime.toMsStr();
+        jdbcTemplate.update("update xshell_config set jump_ip=?,jump_port=?,jump_pwd=?,target_ip=?,docker_id=?,comment=?,modify_time=?"
+                        + " where id=?",
+                xShellConfig.getJumpIp(),
+                xShellConfig.getJumpPort(),
+                xShellConfig.getJumpPwd(),
+                xShellConfig.getTargetIp(),
+                xShellConfig.getDockerId(),
+                xShellConfig.getComment(),
+                msStr,
+                xShellConfig.getId()
+        );
+    }
 }

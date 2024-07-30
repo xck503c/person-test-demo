@@ -8,7 +8,7 @@
     <!--100% 宽度-->
     <div class="container-fluid">
         <div class="row">
-            <button type="button" class="btn btn-default"><a href="manager/addPage">添加</a></button>
+            <button type="button" class="btn btn-default"><a th:href="${#httpServletRequest.getContextPath() + '/tool/linux/server/manager/addPage'}">添加</a></button>
         </div>
         <div class="row">
             <table class="table table-hover">
@@ -33,6 +33,7 @@
                     <td th:text="${item.dockerId}"></td>
                     <td th:text="${item.comment}"></td>
                     <td>
+                        <button type="button" class="btn btn-default" th:data-id="${item.id}" onclick="doConsole(this.getAttribute('data-id'))">控制台</button>
                         <button type="button" class="btn btn-default" th:data-id="${item.id}" onclick="doModify(this.getAttribute('data-id'))">修改</button>
                         <button type="button" class="btn btn-default" th:data-id="${item.id}" onclick="doDelete(this.getAttribute('data-id'))">删除</button>
                     </td>
@@ -49,12 +50,41 @@
 <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script th:inline="javascript" type="text/javascript">
 
+    var ctxPath=[[${#httpServletRequest.getContextPath()}]];
+
+    function doConsole(id) {
+        window.location.href = ctxPath + '/tool/linux/server/manager/jumpConsole/' + id;
+    }
+
     function doModify(id) {
-        window.location.href = 'manager/updatePage/' + id;
+        window.location.href = ctxPath + '/tool/linux/server/manager/updatePage/' + id;
     }
 
     function doDelete(id) {
-        alert(id);
+        var data = {
+            type: 'linuxServer',
+            data: JSON.stringify({
+                id: id
+            })
+        };
+
+        $.ajax({
+            method: 'post',
+            url: ctxPath + '/tool/linux/server/manager/delXshellConfig',
+            data: JSON.stringify(data),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (resp) {
+                var targetContent = $('#targetContent').val();
+                if (resp.code == 200) {
+                    alert(resp.data)
+                    // 跳转回去
+                    window.location.href = ctxPath + '/tool/linux/server/manager';
+                } else {
+                    $('#targetContent').val(targetContent + '\n' + resp.desc);
+                }
+            }
+        });
     }
 
 </script>

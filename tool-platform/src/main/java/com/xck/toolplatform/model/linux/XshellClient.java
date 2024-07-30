@@ -7,6 +7,7 @@ import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
 
+@Deprecated
 public class XshellClient {
 
     private Set<String> stopFlags;
@@ -21,6 +22,7 @@ public class XshellClient {
         this.stopFlags = new HashSet<>();
         stopFlags.add("]$");
         stopFlags.add("]#");
+        stopFlags.add("]>");
     }
 
     public boolean start() {
@@ -43,8 +45,6 @@ public class XshellClient {
             if (StringUtils.isNotBlank(xShellConfig.getDockerId())) {
                 sendCommand("sudo docker exec -it " + xShellConfig.getDockerId() + " /bin/bash");
             }
-
-            System.out.println("登录成功!!!");
 
             return true;
         } catch (Exception e) {
@@ -92,6 +92,9 @@ public class XshellClient {
         char[] buf = new char[1024];
         while (true) {
             int len = br.read(buf);
+            if (len == -1) {
+                break;
+            }
             String readMsg = new String(buf, 0, len);
             sb.append(readMsg);
             for (String stopFlag : stopFlags) {
@@ -99,7 +102,6 @@ public class XshellClient {
                     return sb.toString();
                 }
             }
-
             if (others != null) {
                 for (String stopFlag : others) {
                     if (readMsg.contains(stopFlag)) {
@@ -108,5 +110,7 @@ public class XshellClient {
                 }
             }
         }
+
+        return sb.toString();
     }
 }

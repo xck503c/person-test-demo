@@ -28,4 +28,8 @@ public class LinuxServerManager {
     public XShellConfig query(Long id) {
         return linuxServerDao.getById(id);
     }
+
+    public void update(XShellConfig xShellConfig) {
+        linuxServerDao.updateById(xShellConfig);
+    }
 }
