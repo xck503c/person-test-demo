@@ -477,6 +477,80 @@ public class TestRedisCommand {
         System.out.println(o);
     }
 
+    @Test
+    public void pollLuaAndRetureLen() {
+        RedisPool pool = new RedisPool();
+        pool.init();
+
+        Jedis jedis = pool.getJedis();
+
+        for (int i = 0; i < 1000; i++) {
+            jedis.lpush("q:send:abc", "number" + i);
+        }
+        jedis.hset("hash:q:sends", "q:send:abc", "1000");
+
+        String luaScript = "local elemNum = tonumber(ARGV[1])"
+                + " local vals = redis.call('lrange', KEYS[1], -elemNum, -1)"
+                + " redis.call('ltrim', KEYS[1], 0, -elemNum-1)"
+                // 队列长度
+                + " local listLen = redis.call('llen', KEYS[1])"
+                // 队列为空移除
+                + " if listLen == 0 then redis.call('hdel', KEYS[2])"
+                // 更新key
+                + " else redis.call('hset', KEYS[2], KEYS[1], listLen) end"
+                // 返回队列长度
+                + " return {vals, listLen}";
+
+        List<byte[]> keys = new ArrayList<>();
+        keys.add("q:send:abc".getBytes(StandardCharsets.UTF_8));
+        keys.add("hash:q:sends".getBytes(StandardCharsets.UTF_8));
+
+        List<byte[]> values = new ArrayList<>();
+        values.add("10".getBytes(StandardCharsets.UTF_8));
+        List<Object> o = (List<Object>) jedis.eval(luaScript.getBytes(StandardCharsets.UTF_8), keys, values);
+
+        List<Object> list = (List<Object>) o.get(0);
+        long len = (long) o.get(1);
+
+        System.out.println(list);
+        System.out.println(len);
+    }
+
+    @Test
+    public void pollLuaAndRetureLenPerformanceTest() {
+        RedisPool pool = new RedisPool();
+        pool.init();
+
+        Jedis jedis = pool.getJedis();
+
+        String luaScript = "local listLen = 0"
+                + " listLen = redis.call('lpush', KEYS[1], unpack(ARGV))"
+                + " redis.call('hset', KEYS[2], KEYS[1], listLen)"
+                + " return listLen";
+
+        byte[] luaScriptBytes = luaScript.getBytes(StandardCharsets.UTF_8);
+//        List<byte[]> values = new ArrayList<>();
+//        for (int i = 0; i < 1; i++) {
+//            values.add(new byte[1]);
+//        }
+        byte[][] values1 = new byte[1][];
+        for (int i = 0; i < 1; i++) {
+            values1[i] = new byte[1];
+        }
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 10000; i++) {
+//            List<byte[]> keys = new ArrayList<>();
+//            keys.add("q:send:abc".getBytes(StandardCharsets.UTF_8));
+//            keys.add("hash:q:sends".getBytes(StandardCharsets.UTF_8));
+//            Long len = (Long) jedis.eval(luaScriptBytes, keys, values);
+            jedis.lpush("q:send:abc".getBytes(), values1);
+        }
+
+        System.out.println(System.currentTimeMillis() - start);
+    }
+
+
     public static void main(String[] args) {
         System.out.println(String.valueOf(5f / 100000f));
         System.out.println(Float.valueOf(0.00005f));
